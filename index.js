@@ -3,16 +3,25 @@ var bodyParser = require("body-parser");
 /**
  * This is an API controller to Toto APIs
  * It provides all the methods to create an API and it's methods & paths, to create the documentation automatically, etc.
+ * Provides the following default paths:
+ * '/'            : this is the default SMOKE (health check) path
+ * '/publishes'   : this is the path that can be used to retrieve the list of topics that this API publishes events to
  */
 class TotoAPIController {
 
   /**
    * The constructor requires the express app
+   * Requires:
+   * - apiName              : (mandatory) - the name of the api (e.g. expenses)
+   * - expressApp           : (mandatory) - the Express app to which the paths will be registered
+   * - totoEventPublisher   : (optional) - a TotoEventPublisher object that contains topics registrations
+   *                          if this is passed, the API will give access to the published topics on the /topics path
    */
-  constructor(apiName, expressApp) {
+  constructor(apiName, expressApp, totoEventPublisher) {
 
     this.app = expressApp;
     this.apiName = apiName;
+    this.totoEventPublisher = totoEventPublisher;
 
     // Init the paths
     this.paths = [];
@@ -28,11 +37,22 @@ class TotoAPIController {
     this.app.use(bodyParser.json());
 
     // Add the basic SMOKE api
-    this.path('GET', '/', {do: function(req) {
-      return new Promise(function(s, f) {
+    this.path('GET', '/', {do: (req) => {
+
+      return new Promise((s, f) => {
+
         return s({api: apiName, status: 'running'})
       });
     }});
+
+    // Add the /publishes path
+    this.path('GET', '/publishes', {do: (req) => {
+
+      return new Promise((s, f) => {
+
+          if (this.totoEventPublisher != null) s({topics: totoEventPublisher.getTopics()});
+      });
+    }})
   }
 
   /**
