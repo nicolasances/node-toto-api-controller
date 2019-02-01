@@ -15,9 +15,11 @@ class TotoAPIController {
    * - apiName              : (mandatory) - the name of the api (e.g. expenses)
    * - expressApp           : (mandatory) - the Express app to which the paths will be registered
    * - totoEventPublisher   : (optional) - a TotoEventPublisher object that contains topics registrations
-   *                          if this is passed, the API will give access to the published topics on the /topics path
+   *                          if this is passed, the API will give access to the published topics on the /publishes path
+   * - totoEventConsumer    : (optional) - a TotoEventConsumer object that contains topics registrations
+   *                          if this is passed, the API will give access to the listened topics on the /consumes path
    */
-  constructor(apiName, expressApp, totoEventPublisher) {
+  constructor(apiName, expressApp, totoEventPublisher, totoEventConsumer) {
 
     this.app = expressApp;
     this.apiName = apiName;
@@ -29,7 +31,7 @@ class TotoAPIController {
     // Initialize the basic Express functionalities
     this.app.use(function(req, res, next) {
       res.header("Access-Control-Allow-Origin", "*");
-      res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+      res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-correlation-id");
       res.header("Access-Control-Allow-Methods", "OPTIONS, GET, PUT, POST, DELETE");
       next();
     });
@@ -50,8 +52,17 @@ class TotoAPIController {
 
       return new Promise((s, f) => {
 
-          if (this.totoEventPublisher != null) s({topics: totoEventPublisher.getTopics()});
+          if (this.totoEventPublisher != null) s({topics: totoEventPublisher.getRegisteredTopics()});
       });
+    }})
+
+    // Add the /consumes path
+    this.path('GET', '/consumes', {do: (req) => {
+
+      return new Promise((s, f) => {
+
+        if (this.totoEventConsumer != null) s({topics: totoEventConsumer.getRegisteredTopics()});
+      })
     }})
   }
 
