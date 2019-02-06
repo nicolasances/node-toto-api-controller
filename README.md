@@ -27,3 +27,27 @@ The constructor takes the following arguments:
 ```
 api.start()
 ```
+
+## Example
+An example of usage:
+```
+var Controller = require('toto-api-controller');
+
+var api = new Controller('training-session', totoEventPublisher);
+
+// APIs
+api.path('GET', '/sessions', getSessions);
+api.path('POST', '/sessions', postSession);
+
+api.path('GET', '/sessions/:id', getSession);
+api.path('DELETE', '/sessions/:id', deleteSession);
+
+api.path('GET', '/sessions/:id/exercises', getSessionExercises);
+api.path('POST', '/sessions/:id/exercises', postSessionExercise);
+
+api.path('GET', '/sessions/:id/exercises/:eid', getSessionExercise);
+api.path('PUT', '/sessions/:id/exercises/:eid', putSessionExercise);
+api.path('DELETE', '/sessions/:id/exercises/:eid', deleteSessionExercise);
+
+api.start();
+```
