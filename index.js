@@ -1,4 +1,6 @@
+var express = require('express');
 var bodyParser = require("body-parser");
+var logger = require('toto-logger');
 
 /**
  * This is an API controller to Toto APIs
@@ -13,15 +15,14 @@ class TotoAPIController {
    * The constructor requires the express app
    * Requires:
    * - apiName              : (mandatory) - the name of the api (e.g. expenses)
-   * - expressApp           : (mandatory) - the Express app to which the paths will be registered
    * - totoEventPublisher   : (optional) - a TotoEventPublisher object that contains topics registrations
    *                          if this is passed, the API will give access to the published topics on the /publishes path
    * - totoEventConsumer    : (optional) - a TotoEventConsumer object that contains topics registrations
    *                          if this is passed, the API will give access to the listened topics on the /consumes path
    */
-  constructor(apiName, expressApp, totoEventPublisher, totoEventConsumer) {
+  constructor(apiName, totoEventPublisher, totoEventConsumer) {
 
-    this.app = expressApp;
+    this.app = express();
     this.apiName = apiName;
     this.totoEventPublisher = totoEventPublisher;
 
@@ -37,6 +38,8 @@ class TotoAPIController {
     });
 
     this.app.use(bodyParser.json());
+
+    // Add the standard Toto paths
 
     // Add the basic SMOKE api
     this.path('GET', '/', {do: (req) => {
@@ -84,6 +87,12 @@ class TotoAPIController {
 
     // Create a new express route
     if (method == 'GET') this.app.get(path, (req, res) => {
+
+      // TODO VALIDATE x-correlation-id
+
+      // Log the fact that a call has been received
+      logger.apiIn(req.headers['x-correlation-id'], method, path);
+
       // Execute the GET
       delegate.do(req).then((data) => {
         // Success
@@ -94,6 +103,12 @@ class TotoAPIController {
       });
     });
     else if (method == 'POST') this.app.post(path, (req, res) => {
+
+      // TODO VALIDATE x-correlation-id
+
+      // Log the fact that a call has been received
+      logger.apiIn(req.headers['x-correlation-id'], method, path);
+
       // Execute the POST
       delegate.do(req).then((data) => {
         // Success
@@ -104,6 +119,12 @@ class TotoAPIController {
       });
     });
     else if (method == 'DELETE') this.app.delete(path, (req, res) => {
+
+      // TODO VALIDATE x-correlation-id
+
+      // Log the fact that a call has been received
+      logger.apiIn(req.headers['x-correlation-id'], method, path);
+
       // Execute the DELETE
       delegate.do(req).then((data) => {
         // Success
@@ -114,6 +135,12 @@ class TotoAPIController {
       });
     });
     else if (method == 'PUT') this.app.delete(path, (req, res) => {
+
+      // TODO VALIDATE x-correlation-id
+
+      // Log the fact that a call has been received
+      logger.apiIn(req.headers['x-correlation-id'], method, path);
+
       // Execute the PUT
       delegate.do(req).then((data) => {
         // Success
@@ -126,6 +153,17 @@ class TotoAPIController {
 
     // Log the added path
     console.log('[' + this.apiName + '] - Successfully added method ' + method + ' ' + path);
+  }
+
+  /**
+   * Starts the ExpressJS app by listening on the standard port defined for Toto microservices
+   */
+  listen() {
+
+    this.app.listen(8080, function() {
+      console.log('[' + this.apiName + '] - Up and running');
+    });
+
   }
 }
 
