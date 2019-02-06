@@ -25,7 +25,7 @@ The constructor takes the following arguments:
  * **Event Consumer**   optional, the Toto Event Consumer (see https://github.com/nicolasances/node-toto-event-consumer) if this API consumes events
 3. Start it
 ```
-api.start()
+api.listen()
 ```
 
 ## Example
@@ -49,5 +49,5 @@ api.path('GET', '/sessions/:id/exercises/:eid', getSessionExercise);
 api.path('PUT', '/sessions/:id/exercises/:eid', putSessionExercise);
 api.path('DELETE', '/sessions/:id/exercises/:eid', deleteSessionExercise);
 
-api.start();
+api.listen();
 ```
