@@ -56,6 +56,7 @@ class TotoAPIController {
       return new Promise((s, f) => {
 
           if (this.totoEventPublisher != null) s({topics: totoEventPublisher.getRegisteredTopics()});
+          else s({topics: []});
       });
     }})
 
@@ -65,6 +66,7 @@ class TotoAPIController {
       return new Promise((s, f) => {
 
         if (this.totoEventConsumer != null) s({topics: totoEventConsumer.getRegisteredTopics()});
+        else s({topics: []});
       })
     }})
   }
