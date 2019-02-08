@@ -1,6 +1,7 @@
 var express = require('express');
 var bodyParser = require("body-parser");
 var logger = require('toto-logger');
+var validator = require('./validation/Validator');
 
 /**
  * This is an API controller to Toto APIs
@@ -44,8 +45,6 @@ class TotoAPIController {
     // Add the basic SMOKE api
     this.path('GET', '/', {do: (req) => {
 
-
-
       return new Promise((s, f) => {
 
         return s({api: apiName, status: 'running'})
@@ -57,8 +56,8 @@ class TotoAPIController {
 
       return new Promise((s, f) => {
 
-          if (this.totoEventPublisher != null) s({topics: totoEventPublisher.getRegisteredTopics()});
-          else s({topics: []});
+        if (this.totoEventPublisher != null) s({topics: totoEventPublisher.getRegisteredTopics()});
+        else s({topics: []});
       });
     }})
 
@@ -92,7 +91,10 @@ class TotoAPIController {
     // Create a new express route
     if (method == 'GET') this.app.get(path, (req, res) => {
 
-      // TODO VALIDATE x-correlation-id
+      // Validating
+      let validationResult = validator.do(req);
+
+      if (validationResult.errors) {res.status(400).type('application/json').send({code: 400, message: 'Validation errors', errors: validationResult.errors}); return;}
 
       // Log the fact that a call has been received
       logger.apiIn(req.headers['x-correlation-id'], method, path);
@@ -108,7 +110,10 @@ class TotoAPIController {
     });
     else if (method == 'POST') this.app.post(path, (req, res) => {
 
-      // TODO VALIDATE x-correlation-id
+      // Validating
+      let validationResult = validator.do(req);
+
+      if (validationResult.errors) {res.status(400).type('application/json').send({code: 400, message: 'Validation errors', errors: validationResult.errors}); return;}
 
       // Log the fact that a call has been received
       logger.apiIn(req.headers['x-correlation-id'], method, path);
@@ -124,7 +129,10 @@ class TotoAPIController {
     });
     else if (method == 'DELETE') this.app.delete(path, (req, res) => {
 
-      // TODO VALIDATE x-correlation-id
+      // Validating
+      let validationResult = validator.do(req);
+
+      if (validationResult.errors) {res.status(400).type('application/json').send({code: 400, message: 'Validation errors', errors: validationResult.errors}); return;}
 
       // Log the fact that a call has been received
       logger.apiIn(req.headers['x-correlation-id'], method, path);
@@ -140,7 +148,10 @@ class TotoAPIController {
     });
     else if (method == 'PUT') this.app.delete(path, (req, res) => {
 
-      // TODO VALIDATE x-correlation-id
+      // Validating
+      let validationResult = validator.do(req);
+
+      if (validationResult.errors) {res.status(400).type('application/json').send({code: 400, message: 'Validation errors', errors: validationResult.errors}); return;}
 
       // Log the fact that a call has been received
       logger.apiIn(req.headers['x-correlation-id'], method, path);
