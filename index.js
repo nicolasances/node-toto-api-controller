@@ -44,6 +44,8 @@ class TotoAPIController {
     // Add the basic SMOKE api
     this.path('GET', '/', {do: (req) => {
 
+
+
       return new Promise((s, f) => {
 
         return s({api: apiName, status: 'running'})
@@ -51,7 +53,7 @@ class TotoAPIController {
     }});
 
     // Add the /publishes path
-    this.path('GET', '/publishes', {do: (req) => {
+    this.path('GET', '/produces', {do: (req) => {
 
       return new Promise((s, f) => {
 
