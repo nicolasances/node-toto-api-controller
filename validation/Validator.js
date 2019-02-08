@@ -5,8 +5,8 @@ exports.do = (req) => {
 
   if (req.headers['x-correlation-id'] == null) errors.push('x-correlation-id is a mandatory header');
 
-  if (errors.length > 0) return errors;
+  if (errors.length > 0) return {errors: errors};
 
-  return null;
+  return {errors: null};
 
 }
