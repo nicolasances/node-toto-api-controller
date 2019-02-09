@@ -26,6 +26,7 @@ class TotoAPIController {
     this.app = express();
     this.apiName = apiName;
     this.totoEventPublisher = totoEventPublisher;
+    this.totoEventConsumer = totoEventConsumer;
 
     // Init the paths
     this.paths = [];
