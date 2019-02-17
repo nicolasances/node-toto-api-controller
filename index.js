@@ -147,7 +147,7 @@ class TotoAPIController {
         res.status(500).type('application/json').send(err);
       });
     });
-    else if (method == 'PUT') this.app.delete(path, (req, res) => {
+    else if (method == 'PUT') this.app.put(path, (req, res) => {
 
       // Validating
       let validationResult = validator.do(req);
