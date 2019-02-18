@@ -34,7 +34,7 @@ class TotoAPIController {
     // Initialize the basic Express functionalities
     this.app.use(function(req, res, next) {
       res.header("Access-Control-Allow-Origin", "*");
-      res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-correlation-id");
+      res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-correlation-id, x-msg-id");
       res.header("Access-Control-Allow-Methods", "OPTIONS, GET, PUT, POST, DELETE");
       next();
     });
@@ -98,7 +98,7 @@ class TotoAPIController {
       if (validationResult.errors) {res.status(400).type('application/json').send({code: 400, message: 'Validation errors', errors: validationResult.errors}); return;}
 
       // Log the fact that a call has been received
-      logger.apiIn(req.headers['x-correlation-id'], method, path);
+      logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
       // Execute the GET
       delegate.do(req).then((data) => {
@@ -117,7 +117,7 @@ class TotoAPIController {
       if (validationResult.errors) {res.status(400).type('application/json').send({code: 400, message: 'Validation errors', errors: validationResult.errors}); return;}
 
       // Log the fact that a call has been received
-      logger.apiIn(req.headers['x-correlation-id'], method, path);
+      logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
       // Execute the POST
       delegate.do(req).then((data) => {
@@ -136,7 +136,7 @@ class TotoAPIController {
       if (validationResult.errors) {res.status(400).type('application/json').send({code: 400, message: 'Validation errors', errors: validationResult.errors}); return;}
 
       // Log the fact that a call has been received
-      logger.apiIn(req.headers['x-correlation-id'], method, path);
+      logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
       // Execute the DELETE
       delegate.do(req).then((data) => {
@@ -155,7 +155,7 @@ class TotoAPIController {
       if (validationResult.errors) {res.status(400).type('application/json').send({code: 400, message: 'Validation errors', errors: validationResult.errors}); return;}
 
       // Log the fact that a call has been received
-      logger.apiIn(req.headers['x-correlation-id'], method, path);
+      logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
       // Execute the PUT
       delegate.do(req).then((data) => {
@@ -176,7 +176,7 @@ class TotoAPIController {
    */
   listen() {
 
-    this.app.listen(8080, function() {
+    this.app.listen(8080, () => {
       console.log('[' + this.apiName + '] - Up and running');
     });
 
