@@ -74,6 +74,16 @@ class TotoAPIController {
   }
 
   /**
+   * This method will register the specified path to allow access to the static content in the specified folder
+   * e.g. staticContent('/img', '/img')
+   */
+  staticContent(path, folder) {
+
+    this.app.use(path, express.static(__dirname + folder));
+    
+  }
+
+  /**
    * Add a path to the app.
    * Requires:
    *  - method:   the HTTP method. Can be GET, POST, PUT, DELETE

@@ -51,3 +51,13 @@ api.path('DELETE', '/sessions/:id/exercises/:eid', deleteSessionExercise);
 
 api.listen();
 ```
+## Registering static content
+To provide access to static content (folders) in your service, use the `staticContent()` method:
+```
+api.staticContent(path, folder)
+```
+For example:
+```
+api.staticContent('/img', '/img');
+```
+Note that the folder is **relative to the root folder** and **must contain the starting /**
