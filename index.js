@@ -79,8 +79,12 @@ class TotoAPIController {
    */
   staticContent(path, folder) {
 
+    console.log(__dirname);
+    console.log(this.app);
+    console.log(express.static(__dirname + folder));
+
     this.app.use(path, express.static(__dirname + folder));
-    
+
   }
 
   /**
