@@ -58,6 +58,6 @@ api.staticContent(path, folder)
 ```
 For example:
 ```
-api.staticContent('/img', '/img');
+api.staticContent('/img', '/app/img');
 ```
-Note that the folder is **relative to the root folder** and **must contain the starting /**
+Note that the folder is **an ABSOLUTE folder** 

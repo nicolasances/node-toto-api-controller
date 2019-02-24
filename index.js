@@ -75,15 +75,11 @@ class TotoAPIController {
 
   /**
    * This method will register the specified path to allow access to the static content in the specified folder
-   * e.g. staticContent('/img', '/img')
+   * e.g. staticContent('/img', '/app/img')
    */
   staticContent(path, folder) {
 
-    console.log(__dirname);
-    console.log(this.app);
-    console.log(express.static(__dirname + folder));
-
-    this.app.use(path, express.static(__dirname + folder));
+    this.app.use(path, express.static(folder));
 
   }
 
