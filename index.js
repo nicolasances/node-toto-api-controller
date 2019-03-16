@@ -115,8 +115,12 @@ class TotoAPIController {
         // Success
         res.status(200).type('application/json').send(data);
       }, (err) => {
+        // Log
+        logger.compute(req.headers['x-correlation-id'], err, 'error');
+        // If the err is a {code: 400, message: '...'}, then it's a validation error
+        if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
         // Failure
-        res.status(500).type('application/json').send(err);
+        else res.status(500).type('application/json').send(err);
       });
     });
     else if (method == 'POST') this.app.post(path, (req, res) => {
@@ -134,8 +138,12 @@ class TotoAPIController {
         // Success
         res.status(201).type('application/json').send(data);
       }, (err) => {
+        // Log
+        logger.compute(req.headers['x-correlation-id'], err, 'error');
+        // If the err is a {code: 400, message: '...'}, then it's a validation error
+        if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
         // Failure
-        res.status(500).type('application/json').send(err);
+        else res.status(500).type('application/json').send(err);
       });
     });
     else if (method == 'DELETE') this.app.delete(path, (req, res) => {
@@ -153,8 +161,12 @@ class TotoAPIController {
         // Success
         res.status(200).type('application/json').send(data);
       }, (err) => {
+        // Log
+        logger.compute(req.headers['x-correlation-id'], err, 'error');
+        // If the err is a {code: 400, message: '...'}, then it's a validation error
+        if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
         // Failure
-        res.status(500).type('application/json').send(err);
+        else res.status(500).type('application/json').send(err);
       });
     });
     else if (method == 'PUT') this.app.put(path, (req, res) => {
@@ -172,8 +184,12 @@ class TotoAPIController {
         // Success
         res.status(200).type('application/json').send(data);
       }, (err) => {
+        // Log
+        logger.compute(req.headers['x-correlation-id'], err, 'error');
+        // If the err is a {code: 400, message: '...'}, then it's a validation error
+        if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
         // Failure
-        res.status(500).type('application/json').send(err);
+        else res.status(500).type('application/json').send(err);
       });
     });
 
