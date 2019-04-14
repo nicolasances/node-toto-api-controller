@@ -95,22 +95,49 @@ class TotoAPIController {
 
     this.app.route(path).post(function (req, res, next) {
 
+        // Validating
+        let validationResult = validator.do(req);
+        if (validationResult.errors) {res.status(400).type('application/json').send({code: 400, message: 'Validation errors', errors: validationResult.errors}); return;}
+
+        logger.apiIn(req.headers['x-correlation-id'], 'POST', path, req.headers['x-msg-id']);
+
         var fstream;
+
         req.pipe(req.busboy);
-        req.busboy.on('file', function (fieldname, file, filename) {
-            console.log("Uploading: " + filename);
 
-            let dir = __dirname + '/app-docs';
-            fs.ensureDirSync(dir);
+        req.busboy.on('file', (fieldname, file, filename) => {
 
-            let fstream = fs.createWriteStream(dir + '/' + filename);
+          logger.compute(req.headers['x-correlation-id'], 'Uploading file ' + filename, 'info');
 
-            file.pipe(fstream);
+          // DEfine the target dir
+          let dir = __dirname + '/app-docs';
 
-            fstream.on('close', function () {
-                console.log("Upload Finished of " + filename);
-                res.redirect('back');           //where to go next
+          // Ensure that the dir exists
+          fs.ensureDirSync(dir);
+
+          // Create the file stream
+          fstream = fs.createWriteStream(dir + '/' + filename);
+
+          // Pipe the file data to the stream
+          file.pipe(fstream);
+
+          // When done, call the delegate
+          fstream.on('close', () => {
+
+            delegate.do({headers: req.headers, body: {filepath: dir + '/' + filename}}).then((data) => {
+              // Success
+              res.status(200).type('application/json').send(data);
+
+            }, (err) => {
+              // Log
+              logger.compute(req.headers['x-correlation-id'], err, 'error');
+              // If the err is a {code: 400, message: '...'}, then it's a validation error
+              if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
+              // Failure
+              else res.status(500).type('application/json').send(err);
             });
+
+          });
         });
     });
   }
