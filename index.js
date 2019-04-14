@@ -93,6 +93,13 @@ class TotoAPIController {
    */
   fileUploadPath(path, delegate) {
 
+    // Cache the path
+    this.paths.push({
+      method: 'POST',
+      path: path,
+      delegate: delegate
+    });
+
     this.app.route(path).post(function (req, res, next) {
 
         // Validating
@@ -140,6 +147,9 @@ class TotoAPIController {
           });
         });
     });
+
+    // Log the added path
+    console.log('[' + this.apiName + '] - Successfully added method ' + 'POST' + ' ' + path);
   }
 
   /**
