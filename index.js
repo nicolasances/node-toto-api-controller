@@ -91,7 +91,7 @@ class TotoAPIController {
    * Adds a path that support uploading files
    *  - path:     the path as expected by express. E.g. '/upload'
    */
-  fileUploadPath(path) {
+  fileUploadPath(path, delegate) {
 
     this.app.route(path).post(function (req, res, next) {
 
