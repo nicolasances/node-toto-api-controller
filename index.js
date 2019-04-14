@@ -2,6 +2,9 @@ var express = require('express');
 var bodyParser = require("body-parser");
 var logger = require('toto-logger');
 var validator = require('./validation/Validator');
+var busboy = require('connect-busboy'); //middleware for form/file upload
+var path = require('path');     //used for file path
+var fs = require('fs-extra');       //File System - for file manipulation
 
 /**
  * This is an API controller to Toto APIs
@@ -40,9 +43,10 @@ class TotoAPIController {
     });
 
     this.app.use(bodyParser.json());
+    this.app.use(busboy());
+    this.app.use(express.static(path.join(__dirname, 'public')));
 
     // Add the standard Toto paths
-
     // Add the basic SMOKE api
     this.path('GET', '/', {do: (req) => {
 
@@ -81,6 +85,30 @@ class TotoAPIController {
 
     this.app.use(path, express.static(folder));
 
+  }
+
+  /**
+   * Adds a path that support uploading files
+   *  - path:     the path as expected by express. E.g. '/upload'
+   */
+  fileUploadPath(path) {
+
+    this.app.route(path).post(function (req, res, next) {
+
+        var fstream;
+        req.pipe(req.busboy);
+        req.busboy.on('file', function (fieldname, file, filename) {
+            console.log("Uploading: " + filename);
+
+            //Path where image will be uploaded
+            fstream = fs.createWriteStream(__dirname + '/doc/' + filename);
+            file.pipe(fstream);
+            fstream.on('close', function () {
+                console.log("Upload Finished of " + filename);
+                res.redirect('back');           //where to go next
+            });
+        });
+    });
   }
 
   /**
