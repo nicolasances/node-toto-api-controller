@@ -100,9 +100,13 @@ class TotoAPIController {
         req.busboy.on('file', function (fieldname, file, filename) {
             console.log("Uploading: " + filename);
 
-            //Path where image will be uploaded
-            fstream = fs.createWriteStream(__dirname + '/doc/' + filename);
+            let dir = '/app-docs';
+            fs.ensureDirSync(dir);
+
+            let fstream = fs.createWriteStream(dir + '/' + filename);
+
             file.pipe(fstream);
+
             fstream.on('close', function () {
                 console.log("Upload Finished of " + filename);
                 res.redirect('back');           //where to go next
