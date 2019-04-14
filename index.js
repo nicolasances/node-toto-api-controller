@@ -100,7 +100,7 @@ class TotoAPIController {
         req.busboy.on('file', function (fieldname, file, filename) {
             console.log("Uploading: " + filename);
 
-            let dir = '/app-docs';
+            let dir = __dirname + '/app-docs';
             fs.ensureDirSync(dir);
 
             let fstream = fs.createWriteStream(dir + '/' + filename);
