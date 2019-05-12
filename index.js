@@ -131,6 +131,8 @@ class TotoAPIController {
           // When done, call the delegate
           fstream.on('close', () => {
 
+            console.log(req.body);
+
             delegate.do({query: req.query, params: req.params, headers: req.headers, body: {filepath: dir + '/' + filename, ...req.body}}).then((data) => {
               // Success
               res.status(200).type('application/json').send(data);
