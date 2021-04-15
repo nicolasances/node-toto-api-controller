@@ -1,7 +1,7 @@
 var express = require('express');
 var bodyParser = require("body-parser");
 var logger = require('toto-logger');
-var validator = require('./validation/Validator');
+let Validator = require('./validation/Validator');
 var busboy = require('connect-busboy'); //middleware for form/file upload
 var path = require('path');     //used for file path
 var fs = require('fs-extra');       //File System - for file manipulation
@@ -19,17 +19,24 @@ class TotoAPIController {
      * The constructor requires the express app
      * Requires:
      * - apiName              : (mandatory) - the name of the api (e.g. expenses)
+     * - config               : (mandatory) - a Config class that provides the following methods: 
+     *                          * load() - loads the configuration, returns a Promise 
+     *                          * getAuthorizedClientId() - provides the id of the client authorized to access this backend service. It can also provide null in case all clients can access the microservice.
      * - totoEventPublisher   : (optional) - a TotoEventPublisher object that contains topics registrations
      *                          if this is passed, the API will give access to the published topics on the /publishes path
      * - totoEventConsumer    : (optional) - a TotoEventConsumer object that contains topics registrations
      *                          if this is passed, the API will give access to the listened topics on the /consumes path
      */
-    constructor(apiName, totoEventPublisher, totoEventConsumer) {
+    constructor(apiName, config, totoEventPublisher, totoEventConsumer) {
 
         this.app = express();
         this.apiName = apiName;
         this.totoEventPublisher = totoEventPublisher;
         this.totoEventConsumer = totoEventConsumer;
+
+        config.load().then(() => {
+            this.validator = new Validator(config.getAuthorizedClientId());
+        })
 
         // Init the paths
         this.paths = [];
@@ -81,6 +88,11 @@ class TotoAPIController {
                 })
             }
         })
+
+        // Bindings
+        this.staticContent = this.staticContent.bind(this);
+        this.fileUploadPath = this.fileUploadPath.bind(this);
+        this.path = this.path.bind(this);
     }
 
     /**
@@ -91,6 +103,48 @@ class TotoAPIController {
 
         this.app.use(path, express.static(folder));
 
+    }
+
+    streamGET(path, delegate) {
+
+        this.paths.push({
+            method: 'GET',
+            path: path,
+            delegate: delegate
+        });
+
+        this.app.route(path).get((req, res, next) => {
+
+            this.validator.validate(req).then((validationResult) => {
+
+                if (validationResult.errors) { res.status(400).type('application/json').send({ code: 400, message: 'Validation errors', errors: validationResult.errors }); return; }
+
+                logger.apiIn(req.headers['x-correlation-id'], 'GET', path, req.headers['x-msg-id']);
+
+                // Execute the GET
+                delegate.do(req).then((stream) => {
+                    // Success
+                    // stream must be a stream: e.g. var stream = bucket.file('Toast.jpg').createReadStream();
+                    res.writeHead(200);
+
+                    stream.on('data', (data) => {
+                        res.write(data);
+                    });
+
+                    stream.on('end', () => {
+                        res.end();
+                    });
+                }, (err) => {
+                    // Log
+                    logger.compute(req.headers['x-correlation-id'], err, 'error');
+                    // If the err is a {code: 400, message: '...'}, then it's a validation error
+                    if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
+                    // Failure
+                    else res.status(500).type('application/json').send(err);
+                });
+
+            });
+        });
     }
 
     /**
@@ -106,50 +160,52 @@ class TotoAPIController {
             delegate: delegate
         });
 
-        this.app.route(path).post(function (req, res, next) {
+        this.app.route(path).post((req, res, next) => {
 
             // Validating
-            let validationResult = validator.do(req);
-            if (validationResult.errors) { res.status(400).type('application/json').send({ code: 400, message: 'Validation errors', errors: validationResult.errors }); return; }
+            this.validator.validate(req).then((validationResult) => {
 
-            logger.apiIn(req.headers['x-correlation-id'], 'POST', path, req.headers['x-msg-id']);
+                if (validationResult.errors) { res.status(400).type('application/json').send({ code: 400, message: 'Validation errors', errors: validationResult.errors }); return; }
 
-            var fstream;
+                logger.apiIn(req.headers['x-correlation-id'], 'POST', path, req.headers['x-msg-id']);
 
-            req.pipe(req.busboy);
+                var fstream;
 
-            req.busboy.on('file', (fieldname, file, filename) => {
+                req.pipe(req.busboy);
 
-                logger.compute(req.headers['x-correlation-id'], 'Uploading file ' + filename, 'info');
+                req.busboy.on('file', (fieldname, file, filename) => {
 
-                // DEfine the target dir
-                let dir = __dirname + '/app-docs';
+                    logger.compute(req.headers['x-correlation-id'], 'Uploading file ' + filename, 'info');
 
-                // Ensure that the dir exists
-                fs.ensureDirSync(dir);
+                    // DEfine the target dir
+                    let dir = __dirname + '/app-docs';
 
-                // Create the file stream
-                fstream = fs.createWriteStream(dir + '/' + filename);
+                    // Ensure that the dir exists
+                    fs.ensureDirSync(dir);
 
-                // Pipe the file data to the stream
-                file.pipe(fstream);
+                    // Create the file stream
+                    fstream = fs.createWriteStream(dir + '/' + filename);
 
-                // When done, call the delegate
-                fstream.on('close', () => {
+                    // Pipe the file data to the stream
+                    file.pipe(fstream);
 
-                    delegate.do({ query: req.query, params: req.params, headers: req.headers, body: { filepath: dir + '/' + filename } }).then((data) => {
-                        // Success
-                        res.status(200).type('application/json').send(data);
+                    // When done, call the delegate
+                    fstream.on('close', () => {
 
-                    }, (err) => {
-                        // Log
-                        logger.compute(req.headers['x-correlation-id'], err, 'error');
-                        // If the err is a {code: 400, message: '...'}, then it's a validation error
-                        if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
-                        // Failure
-                        else res.status(500).type('application/json').send(err);
+                        delegate.do({ query: req.query, params: req.params, headers: req.headers, body: { filepath: dir + '/' + filename } }).then((data) => {
+                            // Success
+                            res.status(200).type('application/json').send(data);
+
+                        }, (err) => {
+                            // Log
+                            logger.compute(req.headers['x-correlation-id'], err, 'error');
+                            // If the err is a {code: 400, message: '...'}, then it's a validation error
+                            if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
+                            // Failure
+                            else res.status(500).type('application/json').send(err);
+                        });
+
                     });
-
                 });
             });
         });
@@ -178,7 +234,7 @@ class TotoAPIController {
         if (method == 'GET') this.app.get(path, (req, res) => {
 
             // Validating
-            validator.do(req).then((validationResult) => {
+            this.validator.validate(req).then((validationResult) => {
 
                 if (validationResult.errors) { res.status(400).type('application/json').send({ code: 400, message: 'Validation errors', errors: validationResult.errors }); return; }
 
@@ -203,7 +259,7 @@ class TotoAPIController {
         else if (method == 'POST') this.app.post(path, (req, res) => {
 
             // Validating
-            validator.do(req).then((validationResult) => {
+            this.validator.validate(req).then((validationResult) => {
 
                 if (validationResult.errors) { res.status(400).type('application/json').send({ code: 400, message: 'Validation errors', errors: validationResult.errors }); return; }
 
@@ -228,7 +284,7 @@ class TotoAPIController {
         else if (method == 'DELETE') this.app.delete(path, (req, res) => {
 
             // Validating
-            validator.do(req).then((validationResult) => {
+            this.validator.validate(req).then((validationResult) => {
 
                 if (validationResult.errors) { res.status(400).type('application/json').send({ code: 400, message: 'Validation errors', errors: validationResult.errors }); return; }
 
@@ -253,7 +309,7 @@ class TotoAPIController {
         else if (method == 'PUT') this.app.put(path, (req, res) => {
 
             // Validating
-            validator.do(req).then((validationResult) => {
+            this.validator.validate(req).then((validationResult) => {
 
                 if (validationResult.errors) { res.status(400).type('application/json').send({ code: 400, message: 'Validation errors', errors: validationResult.errors }); return; }
 

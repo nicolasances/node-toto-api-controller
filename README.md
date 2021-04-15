@@ -10,13 +10,20 @@ It will also publish the following endpoints:
 This API Controller will also log following the standard Toto Logging policies.<br/>
 See https://github.com/nicolasances/node-toto-logger
 
+## Major update: 6.0.0
+In this version the following major changes have been made: 
+ * **Config**: now a Config object has to be passed to the Controller. This config **must** provide two methods:
+   * `load()` - an asynchronous function to load the configuration of the microservice, that will return a Promise
+   * `getAuthorizedClientId()` - a function that will return the authorized client id, used to verify that the client app calling the microservice is authorized to do so. *Note that this used to be provided as an Environment Variable, but is now expected out of the config object. This was chosen for a better security.* 
+ * **Streaming**: you can now stream files as a response!
+
 ## Authorization check
 This Controller performs a few mandatory checks on the requests. 
 
 One of those checks is to verify that the provided Authorization header is passed and only the authorized CLIENT is able to access this API. 
 
-So **IMPORTANT**: 
-The validator expects the environment variable `AUTHORIZED_CLIENT_ID`, that will have to contain the client id that will be authorized to access this microservice.
+**IMPORTANT**: 
+This authorized client ID has to be provided by the `getAuthorizedClientId()` method of the `config` object passed in the constructor of this controller.
 
 ## How to use it
 1. Include it:
@@ -25,12 +32,13 @@ var Controller = require('toto-api-controller');
 ```
 2. Instantiate it
 ```
-var api = new Controller('api-name', eventProducer, eventConsumer);
+var api = new Controller('api-name', config eventProducer, eventConsumer);
 ```
 The constructor takes the following arguments:
- * **API name**         mandatory, the name of the microservice (e.g. training-session)
- * **Event Producer**   optional, the Toto Event Producer (see https://github.com/nicolasances/node-toto-event-publisher) if this API publishes events
- * **Event Consumer**   optional, the Toto Event Consumer (see https://github.com/nicolasances/node-toto-event-consumer) if this API consumes events
+ * **`apiName`**         mandatory, the name of the microservice (e.g. training-session)
+ * **`config`** mandatory, the configuration object that will provide the two methods specified above.
+ * **`eventProducer`**   optional, the Toto Event Producer (see https://github.com/nicolasances/node-toto-event-publisher) if this API publishes events
+ * **`eventConsumer`**   optional, the Toto Event Consumer (see https://github.com/nicolasances/node-toto-event-consumer) if this API consumes events
 3. Start it
 ```
 api.listen()
@@ -39,9 +47,10 @@ api.listen()
 ## Example
 An example of usage:
 ```
-var Controller = require('toto-api-controller');
+let Controller = require('toto-api-controller');
+let config = require('./Config');
 
-var api = new Controller('training-session', totoEventPublisher);
+let api = new Controller('training-session', config.config, totoEventPublisher);
 
 // APIs
 api.path('GET', '/sessions', getSessions);
@@ -59,6 +68,45 @@ api.path('DELETE', '/sessions/:id/exercises/:eid', deleteSessionExercise);
 
 api.listen();
 ```
+
+## Example of Config
+```
+// Imports the Secret Manager library
+const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
+
+// Instantiates a client
+class Config {
+
+    load() {
+
+        return new Promise((success, failure) => {
+
+            // Load your configurations here .... 
+            // ....
+
+            // Among those load the authorizedClientId
+            this.authorizedClientId = ...
+
+            success();
+
+        })
+    }
+
+    getAuthorizedClientId() {
+        return this.authorizedClientId;
+    }
+}
+
+exports.config = new Config();
+```
+
+## Streaming files as a response
+To provide an API that streams a file back to the calling client a method is provided in the controller to register that path: `streamGET(path, delegate)`
+
+This method requires two arguments: 
+ * `path` - the path to register (like the `path()` method of this controller)
+ * `delegate` - the delegate that is going to process the request. The delegate **must** provide a `do()` method (like other delegates used in the `path()` registration) and this method **must** return a `Promise`, which **must** return a `ReadableStream` (see https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
+
 ## Registering static content
 To provide access to static content (folders) in your service, use the `staticContent()` method:
 ```
