@@ -341,12 +341,13 @@ class TotoAPIController {
     listen() {
 
         if (!this.validator) {
-            setTimeout(this.listen, 300);
+            console.log("[" + this.apiName + "] - Waiting for the configuration to load...");
+            setTimeout(() => {this.listen()}, 300);
             return;
         }
 
         this.app.listen(8080, () => {
-            console.log('[' + this.apiName + '] - Up and running');
+            console.log('[' + this.apiName + '] - Microservice up and running');
         });
 
     }
