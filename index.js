@@ -93,7 +93,6 @@ class TotoAPIController {
         this.staticContent = this.staticContent.bind(this);
         this.fileUploadPath = this.fileUploadPath.bind(this);
         this.path = this.path.bind(this);
-        this.init = this.init.bind(this);
     }
 
     /**
