@@ -34,12 +34,12 @@ class TotoAPIController {
         this.totoEventPublisher = totoEventPublisher;
         this.totoEventConsumer = totoEventConsumer;
 
-        config.load().then(() => {
-            this.validator = new Validator(config.getAuthorizedClientId());
-        })
-
         // Init the paths
         this.paths = [];
+
+        config.load().then(() => {
+            this.validator = new Validator(config.getAuthorizedClientId());
+        });
 
         // Initialize the basic Express functionalities
         this.app.use(function (req, res, next) {
@@ -93,6 +93,7 @@ class TotoAPIController {
         this.staticContent = this.staticContent.bind(this);
         this.fileUploadPath = this.fileUploadPath.bind(this);
         this.path = this.path.bind(this);
+        this.init = this.init.bind(this);
     }
 
     /**
@@ -339,6 +340,11 @@ class TotoAPIController {
      * Starts the ExpressJS app by listening on the standard port defined for Toto microservices
      */
     listen() {
+
+        if (!this.validator) {
+            setTimeout(this.listen, 300);
+            return;
+        }
 
         this.app.listen(8080, () => {
             console.log('[' + this.apiName + '] - Up and running');
