@@ -10,6 +10,26 @@ It will also publish the following endpoints:
 This API Controller will also log following the standard Toto Logging policies.<br/>
 See https://github.com/nicolasances/node-toto-logger
 
+## Major update: 7.0.0
+Now the auth check also supports **Facebook** on top of Google auth. <br/>
+To do that, the `Config` class also needs to provide: 
+ * `getAuthorizedFBClientId()` - a function that will return the FB app id that is authorized to call this microservice.
+
+ Another update is that now, to avoid redundant call to the auth providers to get user profile from a (access or id) token, the api controller will provide a `userContext` object that will contain the basic user profile. 
+
+ That means that when **delgates** receive a call to their `do()` method, they will receive: 
+  * `req` - the HTTP request, as always
+  * `userContext` - an object that contains: 
+    * `userId` - the auth provider specific user ID (e.g. google user id, or facebook user id)
+    * `email` - the user email
+
+So when you create a delegate your signature will look like this, if you want the user context: 
+```
+exports.do = function (request, userContext) {
+    ...
+}
+```
+
 ## Major update: 6.0.0
 In this version the following major changes have been made: 
  * **Config**: now a Config object has to be passed to the Controller. This config **must** provide two methods:
