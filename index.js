@@ -22,6 +22,7 @@ class TotoAPIController {
      * - config               : (mandatory) - a Config class that provides the following methods: 
      *                          * load() - loads the configuration, returns a Promise 
      *                          * getAuthorizedClientId() - provides the id of the client authorized to access this backend service. It can also provide null in case all clients can access the microservice.
+     *                          * getAuthorizedFBClientId() - provides the id of the FB authorized client. Can be null. 
      * - totoEventPublisher   : (optional) - a TotoEventPublisher object that contains topics registrations
      *                          if this is passed, the API will give access to the published topics on the /publishes path
      * - totoEventConsumer    : (optional) - a TotoEventConsumer object that contains topics registrations
@@ -38,13 +39,16 @@ class TotoAPIController {
         this.paths = [];
 
         config.load().then(() => {
-            this.validator = new Validator(config.getAuthorizedClientId());
+            let authorizedGoogleClientId = config.getAuthorizedClientId ? config.getAuthorizedClientId() : null;
+            let authorizedFBClientId = config.getAuthorizedFBClientId ? config.getAuthorizedFBClientId() : null;
+
+            this.validator = new Validator(authorizedGoogleClientId, authorizedFBClientId);
         });
 
         // Initialize the basic Express functionalities
         this.app.use(function (req, res, next) {
             res.header("Access-Control-Allow-Origin", "*");
-            res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-correlation-id, x-msg-id");
+            res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-correlation-id, x-msg-id, auth-provider");
             res.header("Access-Control-Allow-Methods", "OPTIONS, GET, PUT, POST, DELETE");
             next();
         });
@@ -122,7 +126,7 @@ class TotoAPIController {
                 logger.apiIn(req.headers['x-correlation-id'], 'GET', path, req.headers['x-msg-id']);
 
                 // Execute the GET
-                delegate.do(req).then((stream) => {
+                delegate.do(req, validationResult.userContext).then((stream) => {
                     // Success
                     // stream must be a stream: e.g. var stream = bucket.file('Toast.jpg').createReadStream();
                     res.writeHead(200);
@@ -192,7 +196,7 @@ class TotoAPIController {
                     // When done, call the delegate
                     fstream.on('close', () => {
 
-                        delegate.do({ query: req.query, params: req.params, headers: req.headers, body: { filepath: dir + '/' + filename } }).then((data) => {
+                        delegate.do({ query: req.query, params: req.params, headers: req.headers, body: { filepath: dir + '/' + filename } }, validationResult.userContext).then((data) => {
                             // Success
                             res.status(200).type('application/json').send(data);
 
@@ -242,7 +246,7 @@ class TotoAPIController {
                 logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
                 // Execute the GET
-                delegate.do(req).then((data) => {
+                delegate.do(req, validationResult.userContext).then((data) => {
                     // Success
                     res.status(200).type('application/json').send(data);
                 }, (err) => {
@@ -267,7 +271,7 @@ class TotoAPIController {
                 logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
                 // Execute the POST
-                delegate.do(req).then((data) => {
+                delegate.do(req, validationResult.userContext).then((data) => {
                     // Success
                     res.status(201).type('application/json').send(data);
                 }, (err) => {
@@ -292,7 +296,7 @@ class TotoAPIController {
                 logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
                 // Execute the DELETE
-                delegate.do(req).then((data) => {
+                delegate.do(req, validationResult.userContext).then((data) => {
                     // Success
                     res.status(200).type('application/json').send(data);
                 }, (err) => {
@@ -317,7 +321,7 @@ class TotoAPIController {
                 logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
                 // Execute the PUT
-                delegate.do(req).then((data) => {
+                delegate.do(req, validationResult.userContext).then((data) => {
                     // Success
                     res.status(200).type('application/json').send(data);
                 }, (err) => {
