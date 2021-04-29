@@ -3,7 +3,8 @@ let { fbAuthCheck } = require('./FBAuthCheck');
 
 class Validator {
 
-  constructor(authorizedClientId, authorizedFBClientId) {
+  constructor(props, authorizedClientId, authorizedFBClientId) {
+    this.props = props ? props : {};
     this.authorizedClientId = authorizedClientId;
     this.authorizedFBClientId = authorizedFBClientId;
   }
@@ -26,29 +27,40 @@ class Validator {
       // Correlation ID 
       let cid = req.headers['x-correlation-id']
 
-      if (!authorizationHeader) errors.push('No Authorization provided!');
+      // Checking authorization
+      // If the config doesn't say to bypass authorization, look for the Auth header
+      if (this.props.noAuth == null || this.props.noAuth == false) {
 
-      if (authorizationHeader) {
+        if (!authorizationHeader) errors.push('No Authorization provided!');
+        if (!authProviderHeader) errors.push('No Authorization Provider defined!');
 
-        // Google check
-        if (authProviderHeader == 'google') {
+        if (authorizationHeader) {
 
-          let promise = googleAuthCheck(cid, authorizationHeader, this.authorizedClientId).then((userContext) => { return { userContext: userContext } }, (err) => { errors.push(err); })
+          // Google check
+          if (authProviderHeader == 'google') {
 
-          promises.push(promise);
+            let promise = googleAuthCheck(cid, authorizationHeader, this.authorizedClientId).then((userContext) => { return { userContext: userContext } }, (err) => { errors.push(err); })
 
-        }
+            promises.push(promise);
 
-        // Facebook check
-        if (authProviderHeader == 'fb') {
+          }
+          // Facebook check
+          else if (authProviderHeader == 'fb') {
 
-          let promise = fbAuthCheck(cid, authorizationHeader, this.authorizedFBClientId).then((userContext) => { return { userContext: userContext } }, (err) => { errors.push(err); })
+            let promise = fbAuthCheck(cid, authorizationHeader, this.authorizedFBClientId).then((userContext) => { return { userContext: userContext } }, (err) => { errors.push(err); })
 
-          promises.push(promise);
+            promises.push(promise);
+          }
+          else errors.push("The provided Authorization Provider (" + authProviderHeader + ") is not supported! ");
         }
       }
 
-      if (cid == null) errors.push('No Correlation ID provided');
+      // Checking Correlation ID
+      if (this.props.noCorrelationId == null || this.props.noCorrelationId == false) {
+
+        if (cid == null) errors.push('No Correlation ID provided');
+
+      }
 
       Promise.all(promises).then((values) => {
 

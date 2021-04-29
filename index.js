@@ -42,7 +42,7 @@ class TotoAPIController {
             let authorizedGoogleClientId = config.getAuthorizedClientId ? config.getAuthorizedClientId() : null;
             let authorizedFBClientId = config.getAuthorizedFBClientId ? config.getAuthorizedFBClientId() : null;
 
-            this.validator = new Validator(authorizedGoogleClientId, authorizedFBClientId);
+            this.validator = new Validator(config.getProps ? config.getProps() : null, authorizedGoogleClientId, authorizedFBClientId);
         });
 
         // Initialize the basic Express functionalities
