@@ -10,6 +10,13 @@ It will also publish the following endpoints:
 This API Controller will also log following the standard Toto Logging policies.<br/>
 See https://github.com/nicolasances/node-toto-logger
 
+## Minor release: 7.1.0
+It is now possible to configure properties such as: 
+ * `noAuth` - set to `true` to bypass the authorization checks
+ * `noCorrelationId` - set to `true` to accept HTTP calls without a correlation ID
+
+The config object can now (optionally) provide a `getProps()` function that must return an object with the fields above... and probably more to come soon :) 
+
 ## Major update: 7.0.0
 Now the auth check also supports **Facebook** on top of Google auth. <br/>
 To do that, the `Config` class also needs to provide: 
