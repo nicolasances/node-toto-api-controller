@@ -17,7 +17,7 @@
     "moment-timezone": "^0.5.23",
     "path": "^0.12.7",
     "google-auth-library": "^7.0.2",
-    "toto-apimon-events": "^1.0.1",
+    "request": "^2.88.2",
     "toto-logger": "^4.0.0"
   }
 }
