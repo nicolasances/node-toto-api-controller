@@ -9,11 +9,9 @@ class Logger {
    */
   apiIn(correlationId, method, path, msgId) {
 
-    let ts = moment().tz('Europe/Rome').format('YYYYMMDDHHmmssSSSSS');
+    let ts = moment().tz('Europe/Rome').format('YYYY-MM-DD HH:mm:ss.SSS');
 
-    if (msgId == null) msgId = 'no-id';
-
-    console.log('[' + ts + '] - [' + correlationId + '] - [api-in] - [info] - [' + msgId + '] - Received HTTP call ' + method + ' ' + path);
+    console.info('[' + ts + '] - [' + correlationId + '] - [api-in] - [info] - Received HTTP call ' + method + ' ' + path);
 
   }
 
@@ -22,11 +20,9 @@ class Logger {
    */
   apiOut(correlationId, microservice, method, path, msgId) {
 
-    let ts = moment().tz('Europe/Rome').format('YYYYMMDDHHmmssSSSSS');
+    let ts = moment().tz('Europe/Rome').format('YYYY-MM-DD HH:mm:ss.SSS');
 
-    if (msgId == null) msgId = 'no-id';
-
-    console.log('[' + ts + '] - [' + correlationId + '] - [api-out:' + microservice + '] - [info] - [' + msgId + '] - Performing HTTP call ' + method + ' ' + path);
+    console.info('[' + ts + '] - [' + correlationId + '] - [api-out:' + microservice + '] - [info] - Performing HTTP call ' + method + ' ' + path);
 
   }
 
@@ -35,11 +31,9 @@ class Logger {
   */
   eventIn(correlationId, topic, msgId) {
 
-    let ts = moment().tz('Europe/Rome').format('YYYYMMDDHHmmssSSSSS');
+    let ts = moment().tz('Europe/Rome').format('YYYY-MM-DD HH:mm:ss.SSS');
 
-    if (msgId == null) msgId = 'no-id';
-
-    console.log('[' + ts + '] - [' + correlationId + '] - [event-in] - [info] - [' + msgId + '] - Received event from topic ' + topic);
+    console.info('[' + ts + '] - [' + correlationId + '] - [event-in] - Received event from topic ' + topic);
 
   }
 
@@ -48,11 +42,9 @@ class Logger {
   */
   eventOut(correlationId, topic, msgId) {
 
-    let ts = moment().tz('Europe/Rome').format('YYYYMMDDHHmmssSSSSS');
+    let ts = moment().tz('Europe/Rome').format('YYYY-MM-DD HH:mm:ss.SSS');
 
-    if (msgId == null) msgId = 'no-id';
-
-    console.log('[' + ts + '] - [' + correlationId + '] - [event-out] - [info] - [' + msgId + '] - Sending event to topic ' + topic);
+    console.info('[' + ts + '] - [' + correlationId + '] - [event-out] - Sending event to topic ' + topic);
 
   }
 
@@ -62,9 +54,11 @@ class Logger {
    */
   compute(correlationId, message, logLevel) {
 
-    let ts = moment().tz('Europe/Rome').format('YYYYMMDDHHmmssSSSSS');
+    let ts = moment().tz('Europe/Rome').format('YYYY-MM-DD HH:mm:ss.SSS');
 
-    console.log('[' + ts + '] - [' + correlationId + '] - [compute] - [' + logLevel + '] - ' + message);
+    if (logLevel == 'info') console.info('[' + ts + '] - [' + correlationId + '] - [compute] - ' + message);
+    else if (logLevel == 'error') console.error('[' + ts + '] - [' + correlationId + '] - [compute] - ' + message);
+    else if (logLevel == 'warn') console.warn('[' + ts + '] - [' + correlationId + '] - [compute] - ' + message);
 
   }
 }
