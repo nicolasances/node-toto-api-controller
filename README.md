@@ -10,7 +10,7 @@ It will also publish the following endpoints:
 This API Controller will also log following the standard Toto Logging policies.<br/>
 See https://github.com/nicolasances/node-toto-logger
 
-## Minor release: 7.2.0
+## Minor release: 7.6.0
 Now the controller passes an `executionContext` object to the delegate. <br/>
 That object containes an instance of `Logger` which can be used to log messages with contextual information, like the name of the microservice, etc..
 
