@@ -1,5 +1,4 @@
 let request = require('request');
-const logger = require('toto-logger');
 let moment = require('moment-timezone');
 
 // Facebook has a throttling mechanism, so I have to cache tokens and user info to avoid being blocked
@@ -29,7 +28,7 @@ class FBCache {
 
 const cache = new FBCache();
 
-exports.fbAuthCheck = (cid, authorizationHeader, authorizedClientId) => {
+exports.fbAuthCheck = (cid, authorizationHeader, authorizedClientId, logger) => {
 
     return new Promise((success, failure) => {
 

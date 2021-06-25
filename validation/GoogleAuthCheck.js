@@ -1,7 +1,6 @@
 const { OAuth2Client } = require('google-auth-library');
-const logger = require('toto-logger');
 
-exports.googleAuthCheck = (cid, authorizationHeader, authorizedClientId) => {
+exports.googleAuthCheck = (cid, authorizationHeader, authorizedClientId, logger) => {
 
     return new Promise((success, failure) => {
 

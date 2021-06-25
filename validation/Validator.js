@@ -3,10 +3,11 @@ let { fbAuthCheck } = require('./FBAuthCheck');
 
 class Validator {
 
-  constructor(props, authorizedClientId, authorizedFBClientId) {
+  constructor(props, authorizedClientId, authorizedFBClientId, logger) {
     this.props = props ? props : {};
     this.authorizedClientId = authorizedClientId;
     this.authorizedFBClientId = authorizedFBClientId;
+    this.logger = logger;
   }
 
   validate(req) {
@@ -32,14 +33,14 @@ class Validator {
       if (this.props.noAuth == null || this.props.noAuth == false) {
 
         if (!authorizationHeader) errors.push('No Authorization provided!');
-        if (!authProviderHeader) errors.push('No Authorization Provider defined!');
 
         if (authorizationHeader) {
 
           // Google check
-          if (authProviderHeader == 'google') {
+          // If no auth provider is passed, Google is assumed
+          if (authProviderHeader == 'google' || !authProviderHeader) {
 
-            let promise = googleAuthCheck(cid, authorizationHeader, this.authorizedClientId).then((userContext) => { return { userContext: userContext } }, (err) => { errors.push(err); })
+            let promise = googleAuthCheck(cid, authorizationHeader, this.authorizedClientId, this.logger).then((userContext) => { return { userContext: userContext } }, (err) => { errors.push(err); })
 
             promises.push(promise);
 
@@ -47,7 +48,7 @@ class Validator {
           // Facebook check
           else if (authProviderHeader == 'fb') {
 
-            let promise = fbAuthCheck(cid, authorizationHeader, this.authorizedFBClientId).then((userContext) => { return { userContext: userContext } }, (err) => { errors.push(err); })
+            let promise = fbAuthCheck(cid, authorizationHeader, this.authorizedFBClientId, this.logger).then((userContext) => { return { userContext: userContext } }, (err) => { errors.push(err); })
 
             promises.push(promise);
           }
@@ -64,7 +65,15 @@ class Validator {
 
       Promise.all(promises).then((values) => {
 
-        if (errors.length > 0) success({ errors: errors });
+        if (errors.length > 0) {
+        
+          success({ errors: errors });
+
+          errors.forEach((error) => {
+            this.logger.compute(cid, "TotoAPIController - Validator - Error: " + error, 'error');
+          })
+
+        }
         else {
           if (values && values.length > 0) {
             for (let i = 0; i < values.length; i++) {

@@ -1,6 +1,6 @@
 var express = require('express');
 var bodyParser = require("body-parser");
-var logger = require('toto-logger');
+var Logger = require('toto-logger');
 let Validator = require('./validation/Validator');
 var busboy = require('connect-busboy'); //middleware for form/file upload
 var path = require('path');     //used for file path
@@ -34,6 +34,7 @@ class TotoAPIController {
         this.apiName = apiName;
         this.totoEventPublisher = totoEventPublisher;
         this.totoEventConsumer = totoEventConsumer;
+        this.logger = new Logger(apiName)
 
         // Init the paths
         this.paths = [];
@@ -42,7 +43,7 @@ class TotoAPIController {
             let authorizedGoogleClientId = config.getAuthorizedClientId ? config.getAuthorizedClientId() : null;
             let authorizedFBClientId = config.getAuthorizedFBClientId ? config.getAuthorizedFBClientId() : null;
 
-            this.validator = new Validator(config.getProps ? config.getProps() : null, authorizedGoogleClientId, authorizedFBClientId);
+            this.validator = new Validator(config.getProps ? config.getProps() : null, authorizedGoogleClientId, authorizedFBClientId, this.logger);
         });
 
         // Initialize the basic Express functionalities
@@ -123,10 +124,12 @@ class TotoAPIController {
 
                 if (validationResult.errors) { res.status(400).type('application/json').send({ code: 400, message: 'Validation errors', errors: validationResult.errors }); return; }
 
-                logger.apiIn(req.headers['x-correlation-id'], 'GET', path, req.headers['x-msg-id']);
+                this.logger.apiIn(req.headers['x-correlation-id'], 'GET', path, req.headers['x-msg-id']);
+
+                let executionContext = {logger: this.logger};
 
                 // Execute the GET
-                delegate.do(req, validationResult.userContext).then((stream) => {
+                delegate.do(req, validationResult.userContext, executionContext).then((stream) => {
                     // Success
                     // stream must be a stream: e.g. var stream = bucket.file('Toast.jpg').createReadStream();
                     res.writeHead(200);
@@ -140,7 +143,7 @@ class TotoAPIController {
                     });
                 }, (err) => {
                     // Log
-                    logger.compute(req.headers['x-correlation-id'], err, 'error');
+                    this.logger.compute(req.headers['x-correlation-id'], err, 'error');
                     // If the err is a {code: 400, message: '...'}, then it's a validation error
                     if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
                     // Failure
@@ -171,7 +174,7 @@ class TotoAPIController {
 
                 if (validationResult.errors) { res.status(400).type('application/json').send({ code: 400, message: 'Validation errors', errors: validationResult.errors }); return; }
 
-                logger.apiIn(req.headers['x-correlation-id'], 'POST', path, req.headers['x-msg-id']);
+                this.logger.apiIn(req.headers['x-correlation-id'], 'POST', path, req.headers['x-msg-id']);
 
                 var fstream;
 
@@ -179,7 +182,7 @@ class TotoAPIController {
 
                 req.busboy.on('file', (fieldname, file, filename) => {
 
-                    logger.compute(req.headers['x-correlation-id'], 'Uploading file ' + filename, 'info');
+                    this.logger.compute(req.headers['x-correlation-id'], 'Uploading file ' + filename, 'info');
 
                     // DEfine the target dir
                     let dir = __dirname + '/app-docs';
@@ -196,13 +199,15 @@ class TotoAPIController {
                     // When done, call the delegate
                     fstream.on('close', () => {
 
-                        delegate.do({ query: req.query, params: req.params, headers: req.headers, body: { filepath: dir + '/' + filename } }, validationResult.userContext).then((data) => {
+                        let executionContext = {logger: this.logger};
+
+                        delegate.do({ query: req.query, params: req.params, headers: req.headers, body: { filepath: dir + '/' + filename } }, validationResult.userContext, executionContext).then((data) => {
                             // Success
                             res.status(200).type('application/json').send(data);
 
                         }, (err) => {
                             // Log
-                            logger.compute(req.headers['x-correlation-id'], err, 'error');
+                            this.logger.compute(req.headers['x-correlation-id'], err, 'error');
                             // If the err is a {code: 400, message: '...'}, then it's a validation error
                             if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
                             // Failure
@@ -234,6 +239,8 @@ class TotoAPIController {
             delegate: delegate
         });
 
+        let executionContext = {logger: this.logger};
+
         // Create a new express route
         if (method == 'GET') this.app.get(path, (req, res) => {
 
@@ -243,15 +250,15 @@ class TotoAPIController {
                 if (validationResult.errors) { res.status(400).type('application/json').send({ code: 400, message: 'Validation errors', errors: validationResult.errors }); return; }
 
                 // Log the fact that a call has been received
-                logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
+                this.logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
                 // Execute the GET
-                delegate.do(req, validationResult.userContext).then((data) => {
+                delegate.do(req, validationResult.userContext, executionContext).then((data) => {
                     // Success
                     res.status(200).type('application/json').send(data);
                 }, (err) => {
                     // Log
-                    logger.compute(req.headers['x-correlation-id'], err, 'error');
+                    this.logger.compute(req.headers['x-correlation-id'], err, 'error');
                     // If the err is a {code: 400, message: '...'}, then it's a validation error
                     if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
                     // Failure
@@ -268,15 +275,15 @@ class TotoAPIController {
                 if (validationResult.errors) { res.status(400).type('application/json').send({ code: 400, message: 'Validation errors', errors: validationResult.errors }); return; }
 
                 // Log the fact that a call has been received
-                logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
+                this.logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
                 // Execute the POST
-                delegate.do(req, validationResult.userContext).then((data) => {
+                delegate.do(req, validationResult.userContext, executionContext).then((data) => {
                     // Success
                     res.status(201).type('application/json').send(data);
                 }, (err) => {
                     // Log
-                    logger.compute(req.headers['x-correlation-id'], err, 'error');
+                    this.logger.compute(req.headers['x-correlation-id'], err, 'error');
                     // If the err is a {code: 400, message: '...'}, then it's a validation error
                     if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
                     // Failure
@@ -293,15 +300,15 @@ class TotoAPIController {
                 if (validationResult.errors) { res.status(400).type('application/json').send({ code: 400, message: 'Validation errors', errors: validationResult.errors }); return; }
 
                 // Log the fact that a call has been received
-                logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
+                this.logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
                 // Execute the DELETE
-                delegate.do(req, validationResult.userContext).then((data) => {
+                delegate.do(req, validationResult.userContext, executionContext).then((data) => {
                     // Success
                     res.status(200).type('application/json').send(data);
                 }, (err) => {
                     // Log
-                    logger.compute(req.headers['x-correlation-id'], err, 'error');
+                    this.logger.compute(req.headers['x-correlation-id'], err, 'error');
                     // If the err is a {code: 400, message: '...'}, then it's a validation error
                     if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
                     // Failure
@@ -318,15 +325,15 @@ class TotoAPIController {
                 if (validationResult.errors) { res.status(400).type('application/json').send({ code: 400, message: 'Validation errors', errors: validationResult.errors }); return; }
 
                 // Log the fact that a call has been received
-                logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
+                this.logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
                 // Execute the PUT
-                delegate.do(req, validationResult.userContext).then((data) => {
+                delegate.do(req, validationResult.userContext, executionContext).then((data) => {
                     // Success
                     res.status(200).type('application/json').send(data);
                 }, (err) => {
                     // Log
-                    logger.compute(req.headers['x-correlation-id'], err, 'error');
+                    this.logger.compute(req.headers['x-correlation-id'], err, 'error');
                     // If the err is a {code: 400, message: '...'}, then it's a validation error
                     if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
                     // Failure
