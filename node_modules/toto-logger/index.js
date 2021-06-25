@@ -4,6 +4,12 @@ var moment = require('moment-timezone');
 
 class Logger {
 
+  constructor(apiName) {
+
+    this.apiName = apiName;
+
+  }
+
   /**
    * This method logs an incoming call to an API path
    */
@@ -11,7 +17,7 @@ class Logger {
 
     let ts = moment().tz('Europe/Rome').format('YYYY-MM-DD HH:mm:ss.SSS');
 
-    console.info('[' + ts + '] - [' + correlationId + '] - [api-in] - [info] - Received HTTP call ' + method + ' ' + path);
+    console.info('[' + ts + '] - [' + correlationId + '] - [' + this.apiName + '] - [api-in] - [info] - Received HTTP call ' + method + ' ' + path);
 
   }
 
@@ -22,7 +28,7 @@ class Logger {
 
     let ts = moment().tz('Europe/Rome').format('YYYY-MM-DD HH:mm:ss.SSS');
 
-    console.info('[' + ts + '] - [' + correlationId + '] - [api-out:' + microservice + '] - [info] - Performing HTTP call ' + method + ' ' + path);
+    console.info('[' + ts + '] - [' + correlationId + '] - [' + this.apiName + '] - [api-out:' + microservice + '] - [info] - Performing HTTP call ' + method + ' ' + path);
 
   }
 
@@ -33,7 +39,7 @@ class Logger {
 
     let ts = moment().tz('Europe/Rome').format('YYYY-MM-DD HH:mm:ss.SSS');
 
-    console.info('[' + ts + '] - [' + correlationId + '] - [event-in] - Received event from topic ' + topic);
+    console.info('[' + ts + '] - [' + correlationId + '] - [' + this.apiName + '] - [event-in] - Received event from topic ' + topic);
 
   }
 
@@ -44,7 +50,7 @@ class Logger {
 
     let ts = moment().tz('Europe/Rome').format('YYYY-MM-DD HH:mm:ss.SSS');
 
-    console.info('[' + ts + '] - [' + correlationId + '] - [event-out] - Sending event to topic ' + topic);
+    console.info('[' + ts + '] - [' + correlationId + '] - [' + this.apiName + '] - [event-out] - Sending event to topic ' + topic);
 
   }
 
@@ -56,11 +62,11 @@ class Logger {
 
     let ts = moment().tz('Europe/Rome').format('YYYY-MM-DD HH:mm:ss.SSS');
 
-    if (logLevel == 'info') console.info('[' + ts + '] - [' + correlationId + '] - [compute] - ' + message);
-    else if (logLevel == 'error') console.error('[' + ts + '] - [' + correlationId + '] - [compute] - ' + message);
-    else if (logLevel == 'warn') console.warn('[' + ts + '] - [' + correlationId + '] - [compute] - ' + message);
+    if (logLevel == 'info') console.info('[' + ts + '] - [' + correlationId + '] - [' + this.apiName + '] - ' + message);
+    else if (logLevel == 'error') console.error('[' + ts + '] - [' + correlationId + '] - [' + this.apiName + '] - ' + message);
+    else if (logLevel == 'warn') console.warn('[' + ts + '] - [' + correlationId + '] - [' + this.apiName + '] - ' + message);
 
   }
 }
 
-module.exports = new Logger();
+module.exports = Logger;
