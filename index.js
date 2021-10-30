@@ -23,6 +23,7 @@ class TotoAPIController {
      *                          * load() - loads the configuration, returns a Promise 
      *                          * getAuthorizedClientId() - provides the id of the client authorized to access this backend service. It can also provide null in case all clients can access the microservice.
      *                          * getAuthorizedFBClientId() - provides the id of the FB authorized client. Can be null. 
+     *                          * getCustomAuthVerifier() - OPTIONAL - provides a custom auth verifier (see CustomAuthCheck)
      * - totoEventPublisher   : (optional) - a TotoEventPublisher object that contains topics registrations
      *                          if this is passed, the API will give access to the published topics on the /publishes path
      * - totoEventConsumer    : (optional) - a TotoEventConsumer object that contains topics registrations
@@ -43,7 +44,10 @@ class TotoAPIController {
             let authorizedGoogleClientId = config.getAuthorizedClientId ? config.getAuthorizedClientId() : null;
             let authorizedFBClientId = config.getAuthorizedFBClientId ? config.getAuthorizedFBClientId() : null;
 
-            this.validator = new Validator(config.getProps ? config.getProps() : null, authorizedGoogleClientId, authorizedFBClientId, this.logger);
+            if (config.getCustomAuthVerifier) console.log('[' + this.apiName + '] - A custom Auth Provider was provided');
+
+            this.validator = new Validator(config.getProps ? config.getProps() : null, authorizedGoogleClientId, authorizedFBClientId, this.logger, config.getCustomAuthVerifier ? config.getCustomAuthVerifier() : null);
+
         });
 
         // Initialize the basic Express functionalities

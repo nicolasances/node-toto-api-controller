@@ -1,13 +1,15 @@
 let { googleAuthCheck } = require('./GoogleAuthCheck');
 let { fbAuthCheck } = require('./FBAuthCheck');
+const { customAuthCheck } = require('./CustomAuthCheck');
 
 class Validator {
 
-  constructor(props, authorizedClientId, authorizedFBClientId, logger) {
+  constructor(props, authorizedClientId, authorizedFBClientId, logger, customAuthVerifier) {
     this.props = props ? props : {};
     this.authorizedClientId = authorizedClientId;
     this.authorizedFBClientId = authorizedFBClientId;
     this.logger = logger;
+    this.customAuthVerifier = customAuthVerifier;
   }
 
   validate(req) {
@@ -52,7 +54,14 @@ class Validator {
 
             promises.push(promise);
           }
-          else errors.push("The provided Authorization Provider (" + authProviderHeader + ") is not supported! ");
+          // Custom Authorization provider
+          else {
+
+            let promise = customAuthCheck(cid, authorizationHeader, this.customAuthVerifier, this.logger).then((userContext) => { return { userContext: userContext } }, (err) => { errors.push(err); })
+
+            promises.push(promise);
+
+          }
         }
       }
 
@@ -66,7 +75,7 @@ class Validator {
       Promise.all(promises).then((values) => {
 
         if (errors.length > 0) {
-        
+
           success({ errors: errors });
 
           errors.forEach((error) => {

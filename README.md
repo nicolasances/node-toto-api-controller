@@ -10,6 +10,44 @@ It will also publish the following endpoints:
 This API Controller will also log following the standard Toto Logging policies.<br/>
 See https://github.com/nicolasances/node-toto-logger
 
+## Major release: 8.0.0
+**Now supporting custom Auth Providers!!**<br/>
+How does that work? 
+Now you `config` can provide a `getCustomAuthVerifier` function. That function will need to return an `object` with a function called `verifyIdToken` that given an `idToken` will be able to verify it's validity. 
+
+Let's look at an example of your new config file, when using a custom auth provider: 
+```
+class Config {
+
+    load() {
+        ...
+    }
+
+    getCustomAuthVerifier() {
+        return {
+            verifyIdToken: function({idToken}) {
+
+                return new Promise((success, failure) => {
+
+                    // Here verify the the validity of the received idToken
+                    // .... 
+
+                    // Now return the results
+                    success({
+                        userId: ...,
+                        email: ...,
+                        authProvider: ...
+                    })
+
+                    // Or fail
+                    failure(error);
+                })
+            }
+        }
+    }
+}
+```
+
 ## Minor release: 7.6.0
 Now the controller passes an `executionContext` object to the delegate. <br/>
 That object containes an instance of `Logger` which can be used to log messages with contextual information, like the name of the microservice, etc..
