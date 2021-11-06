@@ -10,6 +10,29 @@ It will also publish the following endpoints:
 This API Controller will also log following the standard Toto Logging policies.<br/>
 See https://github.com/nicolasances/node-toto-logger
 
+## Major release: 9.0.0
+**Now supporting Apple login!**
+
+Other breaking changes: now the `Config` class needs to provide a `getAuthorizedClientIDs()` method, that will return an object `{"google": "clientID", "apple", "clientID", etc..}`
+```
+class Config {
+
+    load() {
+        ...
+    }
+
+    getAuthorizedClientIDs() {
+        return {
+            "google": this.googleClientID, 
+            "apple": this.appleClientID, 
+            "fb": this.fbClientID
+        }
+    }
+
+}
+```
+This replaces the previous methods `getAuthorizedClientId()`, `getAuthorizedFBClientId()`, etc..
+
 ## Major release: 8.0.0
 **Now supporting custom Auth Providers!!**<br/>
 How does that work? 

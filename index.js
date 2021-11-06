@@ -41,12 +41,11 @@ class TotoAPIController {
         this.paths = [];
 
         config.load().then(() => {
-            let authorizedGoogleClientId = config.getAuthorizedClientId ? config.getAuthorizedClientId() : null;
-            let authorizedFBClientId = config.getAuthorizedFBClientId ? config.getAuthorizedFBClientId() : null;
+            let authorizedClientIDs = config.getAuthorizedClientIDs ? config.getAuthorizedClientIDs() : null;
 
             if (config.getCustomAuthVerifier) console.log('[' + this.apiName + '] - A custom Auth Provider was provided');
 
-            this.validator = new Validator(config.getProps ? config.getProps() : null, authorizedGoogleClientId, authorizedFBClientId, this.logger, config.getCustomAuthVerifier ? config.getCustomAuthVerifier() : null);
+            this.validator = new Validator(config.getProps ? config.getProps() : null, authorizedClientIDs, this.logger, config.getCustomAuthVerifier ? config.getCustomAuthVerifier() : null);
 
         });
 

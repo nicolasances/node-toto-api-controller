@@ -1,13 +1,20 @@
 let { googleAuthCheck } = require('./GoogleAuthCheck');
 let { fbAuthCheck } = require('./FBAuthCheck');
+let { appleAuthCheck } = require('./AppleAuthCheck');
 const { customAuthCheck } = require('./CustomAuthCheck');
 
 class Validator {
 
-  constructor(props, authorizedClientId, authorizedFBClientId, logger, customAuthVerifier) {
+  /**
+   * 
+   * @param {object} props Propertiess
+   * @param {object} authorizedClientIDs an object that specifies the different client IDs for the different auth providers. Should be an {"google": <clientID>, "apple": <clientID>, "fb": <clientID>, ...}
+   * @param {object} logger the toto logger
+   * @param {object} customAuthVerifier a custom auth verifier
+   */
+  constructor(props, authorizedClientIDs, logger, customAuthVerifier) {
     this.props = props ? props : {};
-    this.authorizedClientId = authorizedClientId;
-    this.authorizedFBClientId = authorizedFBClientId;
+    this.authorizedClientIDs = authorizedClientIDs;
     this.logger = logger;
     this.customAuthVerifier = customAuthVerifier;
   }
@@ -42,7 +49,9 @@ class Validator {
           // If no auth provider is passed, Google is assumed
           if (authProviderHeader == 'google' || !authProviderHeader) {
 
-            let promise = googleAuthCheck(cid, authorizationHeader, this.authorizedClientId, this.logger).then((userContext) => { return { userContext: userContext } }, (err) => { errors.push(err); })
+            if (!this.authorizedClientIDs['google']) errors.push("No Google Client ID provided!");
+
+            let promise = googleAuthCheck(cid, authorizationHeader, this.authorizedClientIDs['google'], this.logger).then((userContext) => { return { userContext: userContext } }, (err) => { errors.push(err); })
 
             promises.push(promise);
 
@@ -50,9 +59,21 @@ class Validator {
           // Facebook check
           else if (authProviderHeader == 'fb') {
 
-            let promise = fbAuthCheck(cid, authorizationHeader, this.authorizedFBClientId, this.logger).then((userContext) => { return { userContext: userContext } }, (err) => { errors.push(err); })
+            if (!this.authorizedClientIDs['fb']) errors.push("No Facebook Client ID provided!");
+
+            let promise = fbAuthCheck(cid, authorizationHeader, this.authorizedClientIDs['fb'], this.logger).then((userContext) => { return { userContext: userContext } }, (err) => { errors.push(err); })
 
             promises.push(promise);
+          }
+          // Apple check
+          else if (authProviderHeader == 'apple') {
+
+            if (!this.authorizedClientIDs['apple']) errors.push("No Apple Client ID provided!");
+
+            let promise = appleAuthCheck(cid, authorizationHeader, this.authorizedClientIDs['apple'], this.logger).then((userContext) => { return { userContext: userContext } }, (err) => { errors.push(err); })
+
+            promises.push(promise);
+
           }
           // Custom Authorization provider
           else {
