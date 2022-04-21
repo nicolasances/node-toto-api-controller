@@ -18,7 +18,7 @@ To do that, in your `Config` class, in the `getProps()` method, you can pass a `
     getProps() {
         return {
             noCorrelationId: true, 
-            minAppVersion: "0.16.0"
+            minAppVersion: "0.16.0" <- you can do this or use something you have loaded from a configuration or secret
         }
     }
 ```
