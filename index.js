@@ -52,7 +52,7 @@ class TotoAPIController {
         // Initialize the basic Express functionalities
         this.app.use(function (req, res, next) {
             res.header("Access-Control-Allow-Origin", "*");
-            res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-correlation-id, x-msg-id, auth-provider");
+            res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-correlation-id, x-msg-id, auth-provider, x-app-version");
             res.header("Access-Control-Allow-Methods", "OPTIONS, GET, PUT, POST, DELETE");
             next();
         });
@@ -131,6 +131,10 @@ class TotoAPIController {
 
                 let executionContext = {logger: this.logger};
 
+                // Extract the data to add to the execution context
+                executionContext.cid = req.headers['x-correlation-id']; 
+                executionContext.appVersion = req.headers['x-app-version'];
+
                 // Execute the GET
                 delegate.do(req, validationResult.userContext, executionContext).then((stream) => {
                     // Success
@@ -204,6 +208,10 @@ class TotoAPIController {
 
                         let executionContext = {logger: this.logger};
 
+                        // Extract the data to add to the execution context
+                        executionContext.cid = req.headers['x-correlation-id']; 
+                        executionContext.appVersion = req.headers['x-app-version'];
+
                         delegate.do({ query: req.query, params: req.params, headers: req.headers, body: { filepath: dir + '/' + filename } }, validationResult.userContext, executionContext).then((data) => {
                             // Success
                             res.status(200).type('application/json').send(data);
@@ -255,13 +263,21 @@ class TotoAPIController {
                 // Log the fact that a call has been received
                 this.logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
+                // Extract the data to add to the execution context
+                executionContext.cid = req.headers['x-correlation-id']; 
+                executionContext.appVersion = req.headers['x-app-version'];
+
                 // Execute the GET
                 delegate.do(req, validationResult.userContext, executionContext).then((data) => {
                     // Success
                     res.status(200).type('application/json').send(data);
                 }, (err) => {
+
+                    let errString = err;
+                    if (typeof err === 'object' && Object.keys(err)) errString = JSON.stringify(err);
+                    
                     // Log
-                    this.logger.compute(req.headers['x-correlation-id'], err, 'error');
+                    this.logger.compute(req.headers['x-correlation-id'], errString, 'error');
                     // If the err is a {code: 400, message: '...'}, then it's a validation error
                     if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
                     // Failure
@@ -280,13 +296,21 @@ class TotoAPIController {
                 // Log the fact that a call has been received
                 this.logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
+                // Extract the data to add to the execution context
+                executionContext.cid = req.headers['x-correlation-id']; 
+                executionContext.appVersion = req.headers['x-app-version'];
+
                 // Execute the POST
                 delegate.do(req, validationResult.userContext, executionContext).then((data) => {
                     // Success
                     res.status(201).type('application/json').send(data);
                 }, (err) => {
+
+                    let errString = err;
+                    if (typeof err === 'object' && Object.keys(err)) errString = JSON.stringify(err);
+                    
                     // Log
-                    this.logger.compute(req.headers['x-correlation-id'], err, 'error');
+                    this.logger.compute(req.headers['x-correlation-id'], errString, 'error');
                     // If the err is a {code: 400, message: '...'}, then it's a validation error
                     if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
                     // Failure
@@ -305,13 +329,21 @@ class TotoAPIController {
                 // Log the fact that a call has been received
                 this.logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
+                // Extract the data to add to the execution context
+                executionContext.cid = req.headers['x-correlation-id']; 
+                executionContext.appVersion = req.headers['x-app-version'];
+
                 // Execute the DELETE
                 delegate.do(req, validationResult.userContext, executionContext).then((data) => {
                     // Success
                     res.status(200).type('application/json').send(data);
                 }, (err) => {
+
+                    let errString = err;
+                    if (typeof err === 'object' && Object.keys(err)) errString = JSON.stringify(err);
+                    
                     // Log
-                    this.logger.compute(req.headers['x-correlation-id'], err, 'error');
+                    this.logger.compute(req.headers['x-correlation-id'], errString, 'error');
                     // If the err is a {code: 400, message: '...'}, then it's a validation error
                     if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
                     // Failure
@@ -330,13 +362,21 @@ class TotoAPIController {
                 // Log the fact that a call has been received
                 this.logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
+                // Extract the data to add to the execution context
+                executionContext.cid = req.headers['x-correlation-id']; 
+                executionContext.appVersion = req.headers['x-app-version'];
+
                 // Execute the PUT
                 delegate.do(req, validationResult.userContext, executionContext).then((data) => {
                     // Success
                     res.status(200).type('application/json').send(data);
                 }, (err) => {
+
+                    let errString = err;
+                    if (typeof err === 'object' && Object.keys(err)) errString = JSON.stringify(err);
+                    
                     // Log
-                    this.logger.compute(req.headers['x-correlation-id'], err, 'error');
+                    this.logger.compute(req.headers['x-correlation-id'], errString, 'error');
                     // If the err is a {code: 400, message: '...'}, then it's a validation error
                     if (err != null && err.code == '400') res.status(400).type('application/json').send(err);
                     // Failure
