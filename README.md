@@ -10,6 +10,35 @@ It will also publish the following endpoints:
 This API Controller will also log following the standard Toto Logging policies.<br/>
 See https://github.com/nicolasances/node-toto-logger
 
+## Minor release: 9.4.0
+Now supports validating the `x-app-version` header. 
+
+To do that, in your `Config` class, in the `getProps()` method, you can pass a `minAppVersion` field (string, in the format major.minor.patch), like this: 
+```
+    getProps() {
+        return {
+            noCorrelationId: true, 
+            minAppVersion: "0.16.0"
+        }
+    }
+```
+
+If the `minAppVersion` field is passed, the controller will automatically check the provided `x-app-version` header and if lower than the min app version, a validation error will be provided, that looks like this: <br>
+`{code: 'app-version-not-compatible', message: "The App Version is not compatible with this API"}`
+
+**Note**: if the `x-app-version` header is not provided, the controller will not block the request. Clients that do not provide that header are expected to be able to run on the latest version of the backend APIs they are calling.
+
+## Minor release: 9.3.0
+Now supports `x-app-version`. <br>
+This gives clients (apps) the opportunity to provide the app version so that the backend can block old apps from using specific API versions.
+
+The app version is now provided as a field in the `executionContext` when the API delegate is called.<br>
+The cid is also provided: 
+```
+executionContext.cid = req.headers['x-correlation-id']; 
+executionContext.appVersion = req.headers['x-app-version'];
+```
+
 ## Major release: 9.0.0
 **Now supporting Apple login!**
 

@@ -37,6 +37,9 @@ class Validator {
       // Correlation ID 
       let cid = req.headers['x-correlation-id']
 
+      // App Version
+      let appVersion = req.headers['x-app-version'];
+
       // Checking authorization
       // If the config doesn't say to bypass authorization, look for the Auth header
       if (this.props.noAuth == null || this.props.noAuth == false) {
@@ -91,6 +94,13 @@ class Validator {
 
         if (cid == null) errors.push('No Correlation ID provided');
 
+      }
+
+      // Checking minimum app version
+      // The minimum app version must be in the format major.minor.patch
+      if (this.props.minAppVersion) {
+
+        if (appVersion && appVersion < this.props.minAppVersion) errors.push({code: 'app-version-not-compatible', message: "The App Version is not compatible with this API"})
       }
 
       Promise.all(promises).then((values) => {
