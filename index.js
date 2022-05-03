@@ -113,7 +113,14 @@ class TotoAPIController {
 
     }
 
-    streamGET(path, delegate) {
+    /**
+     * 
+     * @param {string} path the path to which this API is reachable
+     * @param {function} delegate the delegate that will handle this call
+     * @param {object} options options to configure this path: 
+     *  - contentType: (OPT, default null) provide the Content-Type header to the response
+     */
+    streamGET(path, delegate, options) {
 
         this.paths.push({
             method: 'GET',
@@ -129,15 +136,18 @@ class TotoAPIController {
 
                 this.logger.apiIn(req.headers['x-correlation-id'], 'GET', path, req.headers['x-msg-id']);
 
-                let executionContext = {logger: this.logger};
+                let executionContext = { logger: this.logger };
 
                 // Extract the data to add to the execution context
-                executionContext.cid = req.headers['x-correlation-id']; 
+                executionContext.cid = req.headers['x-correlation-id'];
                 executionContext.appVersion = req.headers['x-app-version'];
 
                 // Execute the GET
                 delegate.do(req, validationResult.userContext, executionContext).then((stream) => {
-                    // Success
+
+                    // Add any additional configured headers
+                    if (options && options.contentType) res.header('Content-Type', options.contentType);
+
                     // stream must be a stream: e.g. var stream = bucket.file('Toast.jpg').createReadStream();
                     res.writeHead(200);
 
@@ -206,10 +216,10 @@ class TotoAPIController {
                     // When done, call the delegate
                     fstream.on('close', () => {
 
-                        let executionContext = {logger: this.logger};
+                        let executionContext = { logger: this.logger };
 
                         // Extract the data to add to the execution context
-                        executionContext.cid = req.headers['x-correlation-id']; 
+                        executionContext.cid = req.headers['x-correlation-id'];
                         executionContext.appVersion = req.headers['x-app-version'];
 
                         delegate.do({ query: req.query, params: req.params, headers: req.headers, body: { filepath: dir + '/' + filename } }, validationResult.userContext, executionContext).then((data) => {
@@ -250,7 +260,7 @@ class TotoAPIController {
             delegate: delegate
         });
 
-        let executionContext = {logger: this.logger};
+        let executionContext = { logger: this.logger };
 
         // Create a new express route
         if (method == 'GET') this.app.get(path, (req, res) => {
@@ -264,7 +274,7 @@ class TotoAPIController {
                 this.logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
                 // Extract the data to add to the execution context
-                executionContext.cid = req.headers['x-correlation-id']; 
+                executionContext.cid = req.headers['x-correlation-id'];
                 executionContext.appVersion = req.headers['x-app-version'];
 
                 // Execute the GET
@@ -275,7 +285,7 @@ class TotoAPIController {
 
                     let errString = err;
                     if (typeof err === 'object' && Object.keys(err)) errString = JSON.stringify(err);
-                    
+
                     // Log
                     this.logger.compute(req.headers['x-correlation-id'], errString, 'error');
                     // If the err is a {code: 400, message: '...'}, then it's a validation error
@@ -297,7 +307,7 @@ class TotoAPIController {
                 this.logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
                 // Extract the data to add to the execution context
-                executionContext.cid = req.headers['x-correlation-id']; 
+                executionContext.cid = req.headers['x-correlation-id'];
                 executionContext.appVersion = req.headers['x-app-version'];
 
                 // Execute the POST
@@ -308,7 +318,7 @@ class TotoAPIController {
 
                     let errString = err;
                     if (typeof err === 'object' && Object.keys(err)) errString = JSON.stringify(err);
-                    
+
                     // Log
                     this.logger.compute(req.headers['x-correlation-id'], errString, 'error');
                     // If the err is a {code: 400, message: '...'}, then it's a validation error
@@ -330,7 +340,7 @@ class TotoAPIController {
                 this.logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
                 // Extract the data to add to the execution context
-                executionContext.cid = req.headers['x-correlation-id']; 
+                executionContext.cid = req.headers['x-correlation-id'];
                 executionContext.appVersion = req.headers['x-app-version'];
 
                 // Execute the DELETE
@@ -341,7 +351,7 @@ class TotoAPIController {
 
                     let errString = err;
                     if (typeof err === 'object' && Object.keys(err)) errString = JSON.stringify(err);
-                    
+
                     // Log
                     this.logger.compute(req.headers['x-correlation-id'], errString, 'error');
                     // If the err is a {code: 400, message: '...'}, then it's a validation error
@@ -363,7 +373,7 @@ class TotoAPIController {
                 this.logger.apiIn(req.headers['x-correlation-id'], method, path, req.headers['x-msg-id']);
 
                 // Extract the data to add to the execution context
-                executionContext.cid = req.headers['x-correlation-id']; 
+                executionContext.cid = req.headers['x-correlation-id'];
                 executionContext.appVersion = req.headers['x-app-version'];
 
                 // Execute the PUT
@@ -374,7 +384,7 @@ class TotoAPIController {
 
                     let errString = err;
                     if (typeof err === 'object' && Object.keys(err)) errString = JSON.stringify(err);
-                    
+
                     // Log
                     this.logger.compute(req.headers['x-correlation-id'], errString, 'error');
                     // If the err is a {code: 400, message: '...'}, then it's a validation error
@@ -396,7 +406,7 @@ class TotoAPIController {
 
         if (!this.validator) {
             console.info("[" + this.apiName + "] - Waiting for the configuration to load...");
-            setTimeout(() => {this.listen()}, 300);
+            setTimeout(() => { this.listen() }, 300);
             return;
         }
 
