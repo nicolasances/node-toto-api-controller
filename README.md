@@ -10,6 +10,14 @@ It will also publish the following endpoints:
 This API Controller will also log following the standard Toto Logging policies.<br/>
 See https://github.com/nicolasances/node-toto-logger
 
+## Minor release: 9.5.0
+Now supports providing a different `Content-Type` on `streamGET` paths. 
+
+To do that, just pass an options object in the following way: 
+```
+api.streamGET('/path/to/pdf/stream', getMyPDF, { contentType: "application/pdf" });
+```
+
 ## Minor release: 9.4.0
 Now supports validating the `x-app-version` header. 
 
