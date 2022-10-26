@@ -1,6 +1,9 @@
 # Toto API Controller
 The Toto API Controller is a façade to expressJS to make it easier building an API.
 
+The complete documentation of each version is here: 
+ * [Version 9.5.0](docs/9.5.0.md)
+
 Once started, the API Controller will listen on port 8080. <br/>
 It will also publish the following endpoints:
  * `GET /`          - Health check of the API
