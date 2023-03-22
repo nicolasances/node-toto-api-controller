@@ -52,7 +52,7 @@ class TotoAPIController {
         // Initialize the basic Express functionalities
         this.app.use(function (req, res, next) {
             res.header("Access-Control-Allow-Origin", "*");
-            res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-correlation-id, x-msg-id, auth-provider, x-app-version");
+            res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-correlation-id, x-msg-id, auth-provider, x-app-version, x-client");
             res.header("Access-Control-Allow-Methods", "OPTIONS, GET, PUT, POST, DELETE");
             next();
         });
