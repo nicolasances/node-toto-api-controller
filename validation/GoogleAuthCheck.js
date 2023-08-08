@@ -1,5 +1,14 @@
 const { OAuth2Client } = require('google-auth-library');
 
+const decodeJWT = (token) => {
+    if (token !== null || token !== undefined) {
+        const base64String = token.split(`.`)[1];
+        const decodedValue = JSON.parse(Buffer.from(base64String, `base64`).toString(`ascii`));
+        return decodedValue;
+    }
+    return null;
+}
+
 /**
  * @param {string} cid the correlation ID
  * @param {HTTPHeaders} httpHeaders an object containing all the http headers. 
@@ -21,19 +30,30 @@ exports.googleAuthCheck = (cid, httpHeaders, authorizedClientIds, logger) => {
         if (!authorizationHeader) authorizationHeader = httpHeaders['Authorization'];
 
         const clientIdentifier = httpHeaders['x-client']
-        const authorizedClientId = authorizedClientIds[clientIdentifier] ? authorizedClientIds[clientIdentifier] : "web"
+
+        let authorizedClientId; 
+        if (clientIdentifier) authorizedClientId = authorizedClientIds[clientIdentifier] ? authorizedClientIds[clientIdentifier] : authorizedClientIds; // Older versions only had one authorized client ID for each provider
+        else authorizedClientId = authorizedClientIds['anyClient'] ? authorizedClientIds['anyClient'] : authorizedClientIds; // Older versions only had one authorized client ID for each provider
 
         let token = authorizationHeader.substring('Bearer'.length + 1);
 
         const client = new OAuth2Client(authorizedClientId);
+
+        const decodedToken = decodeJWT(token)
+
+        // Useful for debugging audience-related issues
+        if (decodedToken.aud != authorizedClientId) {
+            logger.compute(cid, `Payload Audience: ${decodedToken.aud}`, "info");
+            logger.compute(cid, `Target Audience: ${authorizedClientId}`, "info");
+        }
 
         client.verifyIdToken({ idToken: token, audience: authorizedClientId }).then((ticket) => {
 
             let payload = ticket.getPayload();
 
             success({
-                userId: payload.sub, 
-                email: payload.email, 
+                userId: payload.sub,
+                email: payload.email,
                 authProvider: 'google'
             })
 
