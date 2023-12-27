@@ -10,11 +10,11 @@ The complete documentation of each version is here:
 Once started, the API Controller will listen on port 8080. <br/>
 It will also publish the following endpoints:
  * `GET /`          - Health check of the API
- * `GET /publishes` - Endpoint to get the list of published events
- * `GET /consumes`  - Endpoint to get the list of consumed events
 
-This API Controller will also log following the standard Toto Logging policies.<br/>
-See https://github.com/nicolasances/node-toto-logger
+## Major release 10.0.0
+Now moved to **Typescript**. <br>
+Also contains a simplified Auth check.<br>
+For more info, see [the documentation on Version 10.0.0](docs/11.0.0.md)
 
 ## Major release 10.0.0
 Now requires the `getAuthorizedClientIDs()` method to return, for the "google" key, an object mapping different applications to their client ID.<br>
