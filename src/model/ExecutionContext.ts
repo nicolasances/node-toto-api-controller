@@ -1,4 +1,4 @@
-import { Logger } from "../../logger/TotoLogger"
+import { Logger } from "../logger/TotoLogger"
 import { TotoControllerConfig } from "./TotoControllerConfig";
 
 export class ExecutionContext {
