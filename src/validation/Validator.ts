@@ -1,6 +1,5 @@
 
 import { ValidatorProps } from "../model/ValidatorProps";
-import { Logger } from "../../logger/TotoLogger";
 import { CustomAuthVerifier } from "../model/CustomAuthVerifier";
 import { Request } from "express";
 import { customAuthCheck } from "./CustomAuthCheck";
@@ -8,6 +7,7 @@ import { UserContext } from "../model/UserContext";
 import { googleAuthCheck } from "./GoogleAuthCheck";
 import { TotoControllerConfig } from "../model/TotoControllerConfig";
 import { AUTH_PROVIDERS } from "../model/AuthProviders";
+import { Logger } from "../logger/TotoLogger";
 
 /**
  * Extracts the Bearer token from the HTTP Authorization header and decodes it

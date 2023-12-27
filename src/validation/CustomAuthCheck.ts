@@ -1,4 +1,4 @@
-import { Logger } from "../../logger/TotoLogger";
+import { Logger } from "../logger/TotoLogger";
 import { CustomAuthVerifier } from "../model/CustomAuthVerifier";
 import { UserContext } from "../model/UserContext";
 

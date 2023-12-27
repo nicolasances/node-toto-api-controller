@@ -1,4 +1,4 @@
-import { Logger } from "../../logger/TotoLogger";
+import { Logger } from "../logger/TotoLogger";
 import { AUTH_PROVIDERS } from "../model/AuthProviders";
 
 const { OAuth2Client } = require('google-auth-library');

@@ -1,4 +1,4 @@
-import { Logger } from "../../logger/TotoLogger";
+import { Logger } from "../logger/TotoLogger";
 import { TotoRuntimeError } from "../model/TotoRuntimeError";
 import { ValidationError } from "../validation/Validator";
 
