@@ -39,8 +39,8 @@ const decodeJWT = (authorizationHeader) => {
 const getAuthProvider = (tokenJson) => {
     if (tokenJson.authProvider)
         return tokenJson.authProvider;
-    if (tokenJson.iss && tokenJson.iss == "https://accounts.google.com")
-        return "google";
+    if (tokenJson.iss && (tokenJson.iss.indexOf("accounts.google.com") > -1))
+        return AuthProviders_1.AUTH_PROVIDERS.google;
     return "custom";
 };
 /**
@@ -53,11 +53,12 @@ class Validator {
      * @param {object} logger the toto logger
      * @param {object} customAuthVerifier a custom auth verifier
      */
-    constructor(config, logger) {
+    constructor(config, logger, debugMode = false) {
         this.props = config.getProps();
         this.logger = logger;
         this.customAuthVerifier = config.getCustomAuthVerifier();
         this.config = config;
+        this.debugMode = debugMode;
     }
     /**
      * Validates the provided request
@@ -94,13 +95,26 @@ class Validator {
                 const decodedToken = decodeJWT(String(authorizationHeader));
                 // Retrieve the auth provider from the JWT Token
                 const authProvider = getAuthProvider(decodedToken);
+                if (this.debugMode === true)
+                    this.logger.compute(cid, `[Validator Debug] - Auth Provider: [${authProvider}]`);
                 // Retrieve the audience that the token will be validated against
                 // That is the audience that is expected to be found in the token
-                const expectedAudience = this.config.getExpectedAudience();
-                if (this.customAuthVerifier && authProvider == this.customAuthVerifier.getAuthProvider())
+                const expectedAudience = this.config.getExpectedAudience(authProvider);
+                if (this.debugMode === true)
+                    this.logger.compute(cid, `[Validator Debug] - Expected Audience: [${expectedAudience}]`);
+                if (this.customAuthVerifier && authProvider == this.customAuthVerifier.getAuthProvider()) {
+                    if (this.debugMode === true)
+                        this.logger.compute(cid, `[Validator Debug] - Using Custom Auth Provider`);
                     return yield (0, CustomAuthCheck_1.customAuthCheck)(cid, authorizationHeader, this.customAuthVerifier, this.logger);
-                else if (authProvider == AuthProviders_1.AUTH_PROVIDERS.google)
-                    return yield (0, GoogleAuthCheck_1.googleAuthCheck)(cid, authorizationHeader, String(expectedAudience), this.logger);
+                }
+                else if (authProvider == AuthProviders_1.AUTH_PROVIDERS.google) {
+                    if (this.debugMode === true)
+                        this.logger.compute(cid, `[Validator Debug] - Using Google Auth Provider`);
+                    const googleAuthCheckResult = yield (0, GoogleAuthCheck_1.googleAuthCheck)(cid, authorizationHeader, String(expectedAudience), this.logger, this.debugMode);
+                    if (this.debugMode === true)
+                        this.logger.compute(cid, `[Validator Debug] - UserContext created by Google Auth Check: [${JSON.stringify(GoogleAuthCheck_1.googleAuthCheck)}]`);
+                    return googleAuthCheckResult;
+                }
             }
         });
     }

@@ -1,5 +1,5 @@
 import { Logger } from "../logger/TotoLogger";
-export declare function googleAuthCheck(cid: string, authorizationHeader: string | string[] | undefined, expectedAudience: string, logger: Logger): Promise<{
+export declare function googleAuthCheck(cid: string, authorizationHeader: string | string[] | undefined, expectedAudience: string, logger: Logger, debugMode?: boolean): Promise<{
     userId: any;
     email: any;
     authProvider: string;

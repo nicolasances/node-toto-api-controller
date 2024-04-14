@@ -12,13 +12,14 @@ export declare class Validator {
     logger: Logger;
     customAuthVerifier?: CustomAuthVerifier;
     config: TotoControllerConfig;
+    debugMode: boolean;
     /**
      *
      * @param {object} props Propertiess
      * @param {object} logger the toto logger
      * @param {object} customAuthVerifier a custom auth verifier
      */
-    constructor(config: TotoControllerConfig, logger: Logger);
+    constructor(config: TotoControllerConfig, logger: Logger, debugMode?: boolean);
     /**
      * Validates the provided request
      * @param req Request the Express request

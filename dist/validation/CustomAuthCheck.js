@@ -31,6 +31,8 @@ function customAuthCheck(cid, authorizationHeader, authorizationVerifier, logger
         }
         catch (error) {
             logger.compute(cid, "Invalid Authorization Token", "error");
+            if (error && error.code == 401)
+                throw error;
             throw { code: 401, message: `Invalid Authorization Token [${token}]` };
         }
     });

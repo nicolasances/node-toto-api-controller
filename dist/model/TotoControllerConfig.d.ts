@@ -18,6 +18,8 @@ export interface TotoControllerConfig {
      * The expected audience is used when verifying the Authorization's header Bearer JWT token.
      * The audience is extracted from the token and compared with the expected audience, to make sure
      * that the token was issued for the correct purpose (audience).
+     *
+     * @param authProvider A string with the code of the auth provider. Can be null, for which case this method is expected to return the expected audience for the default auth provider.
      */
-    getExpectedAudience(): string;
+    getExpectedAudience(authProvider?: string): string;
 }

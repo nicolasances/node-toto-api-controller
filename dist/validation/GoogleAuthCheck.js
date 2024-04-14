@@ -20,11 +20,13 @@ const decodeJWT = (token) => {
     }
     return null;
 };
-function googleAuthCheck(cid, authorizationHeader, expectedAudience, logger) {
+function googleAuthCheck(cid, authorizationHeader, expectedAudience, logger, debugMode = false) {
     return __awaiter(this, void 0, void 0, function* () {
         const token = authorizationHeader ? String(authorizationHeader).substring('Bearer'.length + 1) : null;
         const client = new OAuth2Client(expectedAudience);
         const decodedToken = decodeJWT(token);
+        if (debugMode === true)
+            logger.compute(cid, `[Google Auth Check Debug] - Decoded token: [${JSON.stringify(decodedToken)}]`);
         // Useful for debugging audience-related issues
         if (decodedToken.aud != expectedAudience) {
             logger.compute(cid, `Payload Audience: ${decodedToken.aud}`, "error");
@@ -32,6 +34,8 @@ function googleAuthCheck(cid, authorizationHeader, expectedAudience, logger) {
         }
         const ticket = yield client.verifyIdToken({ idToken: token, audience: expectedAudience });
         let payload = ticket.getPayload();
+        if (debugMode === true)
+            logger.compute(cid, `[Google Auth Check Debug] - Token Verification Ticked payload: [${JSON.stringify(payload)}]`);
         return {
             userId: payload.sub,
             email: payload.email,
