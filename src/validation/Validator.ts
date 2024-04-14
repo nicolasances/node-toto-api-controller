@@ -38,7 +38,7 @@ const getAuthProvider = (tokenJson: any) => {
 
   if (tokenJson.authProvider) return tokenJson.authProvider;
 
-  if (tokenJson.iss && tokenJson.iss == "https://accounts.google.com") return "google";
+  if (tokenJson.iss && (tokenJson.iss.indexOf("accounts.google.com") > -1)) return AUTH_PROVIDERS.google;
 
   return "custom";
 
@@ -112,7 +112,7 @@ export class Validator {
 
       // Retrieve the audience that the token will be validated against
       // That is the audience that is expected to be found in the token
-      const expectedAudience = this.config.getExpectedAudience();
+      const expectedAudience = this.config.getExpectedAudience(authProvider);
 
       if (this.customAuthVerifier && authProvider == this.customAuthVerifier.getAuthProvider()) return await customAuthCheck(cid, authorizationHeader, this.customAuthVerifier, this.logger);
       else if (authProvider == AUTH_PROVIDERS.google) return await googleAuthCheck(cid, authorizationHeader, String(expectedAudience), this.logger)
