@@ -53,6 +53,7 @@ export class Validator {
   logger: Logger;
   customAuthVerifier?: CustomAuthVerifier;
   config: TotoControllerConfig;
+  debugMode: boolean
 
   /**
    * 
@@ -60,11 +61,12 @@ export class Validator {
    * @param {object} logger the toto logger
    * @param {object} customAuthVerifier a custom auth verifier
    */
-  constructor(config: TotoControllerConfig, logger: Logger) {
+  constructor(config: TotoControllerConfig, logger: Logger, debugMode: boolean = false) {
     this.props = config.getProps();
     this.logger = logger;
     this.customAuthVerifier = config.getCustomAuthVerifier();
     this.config = config;
+    this.debugMode = debugMode;
   }
 
   /**
@@ -110,12 +112,30 @@ export class Validator {
       // Retrieve the auth provider from the JWT Token
       const authProvider = getAuthProvider(decodedToken);
 
+      if (this.debugMode === true) this.logger.compute(cid, `[Validator Debug] - Auth Provider: [${authProvider}]`)
+
       // Retrieve the audience that the token will be validated against
       // That is the audience that is expected to be found in the token
       const expectedAudience = this.config.getExpectedAudience(authProvider);
 
-      if (this.customAuthVerifier && authProvider == this.customAuthVerifier.getAuthProvider()) return await customAuthCheck(cid, authorizationHeader, this.customAuthVerifier, this.logger);
-      else if (authProvider == AUTH_PROVIDERS.google) return await googleAuthCheck(cid, authorizationHeader, String(expectedAudience), this.logger)
+      if (this.debugMode === true) this.logger.compute(cid, `[Validator Debug] - Expected Audience: [${expectedAudience}]`)
+
+      if (this.customAuthVerifier && authProvider == this.customAuthVerifier.getAuthProvider()) {
+
+        if (this.debugMode === true) this.logger.compute(cid, `[Validator Debug] - Using Custom Auth Provider`)
+
+        return await customAuthCheck(cid, authorizationHeader, this.customAuthVerifier, this.logger);
+      }
+      else if (authProvider == AUTH_PROVIDERS.google) {
+
+        if (this.debugMode === true) this.logger.compute(cid, `[Validator Debug] - Using Google Auth Provider`)
+
+        const googleAuthCheckResult = await googleAuthCheck(cid, authorizationHeader, String(expectedAudience), this.logger, this.debugMode)
+
+        if (this.debugMode === true) this.logger.compute(cid, `[Validator Debug] - UserContext created by Google Auth Check: [${JSON.stringify(googleAuthCheck)}]`)
+
+        return googleAuthCheckResult;
+      }
 
     }
 
