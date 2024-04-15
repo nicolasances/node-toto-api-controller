@@ -34,7 +34,7 @@ const decodeJWT = (authorizationHeader: string) => {
  * @param tokenJson the JWT token as a json object
  * @returns the auth provider based on the JWT token
  */
-const getAuthProvider = (tokenJson: any) => {
+const getAuthProvider = (tokenJson: any): string => {
 
   if (tokenJson.authProvider) return tokenJson.authProvider;
 
@@ -120,13 +120,13 @@ export class Validator {
 
       if (this.debugMode === true) this.logger.compute(cid, `[Validator Debug] - Expected Audience: [${expectedAudience}]`)
 
-      if (this.customAuthVerifier && authProvider == this.customAuthVerifier.getAuthProvider()) {
+      if (this.customAuthVerifier && authProvider.toLowerCase() == this.customAuthVerifier.getAuthProvider().toLowerCase()) {
 
         if (this.debugMode === true) this.logger.compute(cid, `[Validator Debug] - Using Custom Auth Provider`)
 
         return await customAuthCheck(cid, authorizationHeader, this.customAuthVerifier, this.logger);
       }
-      else if (authProvider == AUTH_PROVIDERS.google) {
+      else if (authProvider.toLowerCase() == AUTH_PROVIDERS.google) {
 
         if (this.debugMode === true) this.logger.compute(cid, `[Validator Debug] - Using Google Auth Provider`)
 
