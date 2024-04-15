@@ -3,6 +3,9 @@ import { Logger } from './logger/TotoLogger';
 import { TotoControllerConfig } from './model/TotoControllerConfig';
 import { Validator } from './validation/Validator';
 import { TotoDelegate } from './model/TotoDelegate';
+export declare class TotoControllerOptions {
+    debugMode: boolean;
+}
 /**
  * This is an API controller to Toto APIs
  * It provides all the methods to create an API and it's methods & paths, to create the documentation automatically, etc.
@@ -16,13 +19,14 @@ export declare class TotoAPIController {
     logger: Logger;
     validator: Validator;
     config: TotoControllerConfig;
+    options: TotoControllerOptions;
     /**
      * The constructor requires the express app
      * Requires:
      * - apiName              : (mandatory) - the name of the api (e.g. expenses)
      * - config               : (mandatory) - a TotoControllerConfig instance
      */
-    constructor(apiName: string, config: TotoControllerConfig);
+    constructor(apiName: string, config: TotoControllerConfig, options?: TotoControllerOptions);
     init(): Promise<void>;
     /**
      * This method will register the specified path to allow access to the static content in the specified folder

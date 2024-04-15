@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TotoAPIController = void 0;
+exports.TotoAPIController = exports.TotoControllerOptions = void 0;
 const body_parser_1 = __importDefault(require("body-parser"));
 const connect_busboy_1 = __importDefault(require("connect-busboy"));
 const path_1 = __importDefault(require("path"));
@@ -23,6 +23,12 @@ const Validator_1 = require("./validation/Validator");
 const ExecutionContext_1 = require("./model/ExecutionContext");
 const SmokeDelegate_1 = require("./dlg/SmokeDelegate");
 const TotoRuntimeError_1 = require("./model/TotoRuntimeError");
+class TotoControllerOptions {
+    constructor() {
+        this.debugMode = false;
+    }
+}
+exports.TotoControllerOptions = TotoControllerOptions;
 /**
  * This is an API controller to Toto APIs
  * It provides all the methods to create an API and it's methods & paths, to create the documentation automatically, etc.
@@ -37,12 +43,13 @@ class TotoAPIController {
      * - apiName              : (mandatory) - the name of the api (e.g. expenses)
      * - config               : (mandatory) - a TotoControllerConfig instance
      */
-    constructor(apiName, config) {
+    constructor(apiName, config, options = new TotoControllerOptions()) {
         this.validator = new Validator_1.LazyValidator();
         this.app = (0, express_1.default)();
         this.apiName = apiName;
         this.logger = new TotoLogger_1.Logger(apiName);
         this.config = config;
+        this.options = options;
         // Initialize the basic Express functionalities
         this.app.use(function (req, res, next) {
             res.header("Access-Control-Allow-Origin", "*");
@@ -64,7 +71,7 @@ class TotoAPIController {
     init() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.config.load();
-            this.validator = new Validator_1.Validator(this.config, this.logger);
+            this.validator = new Validator_1.Validator(this.config, this.logger, this.options.debugMode);
         });
     }
     /**
