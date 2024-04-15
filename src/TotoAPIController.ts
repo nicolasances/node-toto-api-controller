@@ -12,6 +12,10 @@ import { ExecutionContext } from './model/ExecutionContext';
 import { SmokeDelegate } from './dlg/SmokeDelegate';
 import { TotoRuntimeError } from './model/TotoRuntimeError';
 
+export class TotoControllerOptions {
+    debugMode: boolean = false
+}
+
 /**
  * This is an API controller to Toto APIs
  * It provides all the methods to create an API and it's methods & paths, to create the documentation automatically, etc.
@@ -26,6 +30,7 @@ export class TotoAPIController {
     logger: Logger;
     validator: Validator = new LazyValidator();
     config: TotoControllerConfig;
+    options: TotoControllerOptions;
 
     /**
      * The constructor requires the express app
@@ -33,12 +38,13 @@ export class TotoAPIController {
      * - apiName              : (mandatory) - the name of the api (e.g. expenses)
      * - config               : (mandatory) - a TotoControllerConfig instance
      */
-    constructor(apiName: string, config: TotoControllerConfig) {
+    constructor(apiName: string, config: TotoControllerConfig, options: TotoControllerOptions = new TotoControllerOptions()) {
 
         this.app = express();
         this.apiName = apiName;
         this.logger = new Logger(apiName)
         this.config = config;
+        this.options = options;
 
         // Initialize the basic Express functionalities
         this.app.use(function (req: any, res: any, next: any) {
@@ -66,7 +72,7 @@ export class TotoAPIController {
 
         await this.config.load();
 
-        this.validator = new Validator(this.config, this.logger);
+        this.validator = new Validator(this.config, this.logger, this.options.debugMode);
 
     }
 
