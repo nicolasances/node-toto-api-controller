@@ -136,6 +136,9 @@ export class Validator {
 
         return googleAuthCheckResult;
       }
+      else {
+        if (this.debugMode === true) this.logger.compute(cid, `[Validator Debug] - UserContext will be null as no Auth Provider could be determined.`)
+      }
 
     }
 
