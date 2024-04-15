@@ -102,18 +102,22 @@ class Validator {
                 const expectedAudience = this.config.getExpectedAudience(authProvider);
                 if (this.debugMode === true)
                     this.logger.compute(cid, `[Validator Debug] - Expected Audience: [${expectedAudience}]`);
-                if (this.customAuthVerifier && authProvider == this.customAuthVerifier.getAuthProvider()) {
+                if (this.customAuthVerifier && authProvider.toLowerCase() == this.customAuthVerifier.getAuthProvider().toLowerCase()) {
                     if (this.debugMode === true)
                         this.logger.compute(cid, `[Validator Debug] - Using Custom Auth Provider`);
                     return yield (0, CustomAuthCheck_1.customAuthCheck)(cid, authorizationHeader, this.customAuthVerifier, this.logger);
                 }
-                else if (authProvider == AuthProviders_1.AUTH_PROVIDERS.google) {
+                else if (authProvider.toLowerCase() == AuthProviders_1.AUTH_PROVIDERS.google) {
                     if (this.debugMode === true)
                         this.logger.compute(cid, `[Validator Debug] - Using Google Auth Provider`);
                     const googleAuthCheckResult = yield (0, GoogleAuthCheck_1.googleAuthCheck)(cid, authorizationHeader, String(expectedAudience), this.logger, this.debugMode);
                     if (this.debugMode === true)
                         this.logger.compute(cid, `[Validator Debug] - UserContext created by Google Auth Check: [${JSON.stringify(GoogleAuthCheck_1.googleAuthCheck)}]`);
                     return googleAuthCheckResult;
+                }
+                else {
+                    if (this.debugMode === true)
+                        this.logger.compute(cid, `[Validator Debug] - UserContext will be null as no Auth Provider could be determined.`);
                 }
             }
         });
