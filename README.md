@@ -11,6 +11,13 @@ Once started, the API Controller will listen on port 8080. <br/>
 It will also publish the following endpoints:
  * `GET /`          - Health check of the API
 
+## Minor release 11.3.0
+Support for **overriding the Content Type** of a response. <br>
+For more info, see the [documentation of Version 11](docs/11.0.0.md)
+
+## Major release 11.0.0
+Non-backward compatible release moving to Typescript.
+
 ## Major release 10.0.0
 Now moved to **Typescript**. <br>
 Also contains a simplified Auth check.<br>

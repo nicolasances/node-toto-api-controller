@@ -233,7 +233,16 @@ export class TotoAPIController {
                 // Execute the GET
                 const data = await delegate.do(req, userContext, executionContext);
 
-                res.status(200).type('application/json').send(data);
+                let contentType = 'application/json'
+                let dataToReturn = data;
+
+                // If the data specifies a "contentType" field, override the content type
+                if (data && data.contentType) {
+                    contentType = data.contentType;
+                    dataToReturn = data.data;
+                }
+
+                res.status(200).type(contentType).send(dataToReturn);
 
             } catch (error) {
 
