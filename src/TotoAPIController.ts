@@ -243,9 +243,10 @@ export class TotoAPIController {
                 if (data && data.contentType) {
                     contentType = data.contentType;
                     dataToReturn = data.data;
+                    res.status(200).type(contentType).end(dataToReturn, "binary");
                 }
+                else res.status(200).type(contentType).end(dataToReturn);
 
-                res.status(200).type(contentType).send(dataToReturn);
 
             } catch (error) {
 
