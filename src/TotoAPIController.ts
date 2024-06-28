@@ -46,6 +46,9 @@ export class TotoAPIController {
         this.config = config;
         this.options = options;
 
+        // Log some configuration properties
+        if (options.debugMode) this.logger.compute("", `[TotoAPIController Debug] - Config Properties: ${JSON.stringify(config.getProps())}`)
+
         // Initialize the basic Express functionalities
         this.app.use(function (req: any, res: any, next: any) {
             res.header("Access-Control-Allow-Origin", "*");

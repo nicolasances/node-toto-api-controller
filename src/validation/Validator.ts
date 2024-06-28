@@ -67,6 +67,9 @@ export class Validator {
     this.customAuthVerifier = config.getCustomAuthVerifier();
     this.config = config;
     this.debugMode = debugMode;
+
+    if (debugMode) this.logger.compute("", `[Validator Debug] - Constructing Validator with Config props: ${JSON.stringify(this.props)}`)
+
   }
 
   /**
@@ -82,6 +85,8 @@ export class Validator {
 
     // Correlation ID 
     let cid: string = String(req.headers['x-correlation-id']) ?? "";
+
+    if (this.debugMode) this.logger.compute(cid, `[Validator Debug] - Validation starting with Config props: ${JSON.stringify(this.props)}`)
 
     // App Version
     let appVersion = req.headers['x-app-version'];
