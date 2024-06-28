@@ -193,7 +193,14 @@ class TotoAPIController {
                 const executionContext = new ExecutionContext_1.ExecutionContext(this.logger, this.apiName, this.config, cid, String(req.headers['x-app-version']));
                 // Execute the GET
                 const data = yield delegate.do(req, userContext, executionContext);
-                res.status(200).type('application/json').send(data);
+                let contentType = 'application/json';
+                let dataToReturn = data;
+                // If the data specifies a "contentType" field, override the content type
+                if (data && data.contentType) {
+                    contentType = data.contentType;
+                    dataToReturn = data.data;
+                }
+                res.status(200).type(contentType).send(dataToReturn);
             }
             catch (error) {
                 this.logger.compute(cid, `${error}`, "error");
