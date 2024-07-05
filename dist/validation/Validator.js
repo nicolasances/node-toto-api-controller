@@ -67,7 +67,7 @@ class Validator {
      * @param req Request the Express request
      * @returns a Promise
      */
-    validate(req) {
+    validate(req, options) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             // Extraction of the headers
@@ -93,35 +93,38 @@ class Validator {
             // Checking authorization
             // If the config doesn't say to bypass authorization, look for the Auth header
             if (this.props.noAuth == null || this.props.noAuth == false) {
-                if (!authorizationHeader)
-                    throw new ValidationError(401, "No Authorization Header provided");
-                // Decode the JWT token
-                const decodedToken = decodeJWT(String(authorizationHeader));
-                // Retrieve the auth provider from the JWT Token
-                const authProvider = getAuthProvider(decodedToken);
-                if (this.debugMode === true)
-                    this.logger.compute(cid, `[Validator Debug] - Auth Provider: [${authProvider}]`);
-                // Retrieve the audience that the token will be validated against
-                // That is the audience that is expected to be found in the token
-                const expectedAudience = this.config.getExpectedAudience(authProvider);
-                if (this.debugMode === true)
-                    this.logger.compute(cid, `[Validator Debug] - Expected Audience: [${expectedAudience}]`);
-                if (this.customAuthVerifier && authProvider.toLowerCase() == this.customAuthVerifier.getAuthProvider().toLowerCase()) {
+                // Check if Path Options allow for this route to be auth free
+                if (!options || options.noAuth == false) {
+                    if (!authorizationHeader)
+                        throw new ValidationError(401, "No Authorization Header provided");
+                    // Decode the JWT token
+                    const decodedToken = decodeJWT(String(authorizationHeader));
+                    // Retrieve the auth provider from the JWT Token
+                    const authProvider = getAuthProvider(decodedToken);
                     if (this.debugMode === true)
-                        this.logger.compute(cid, `[Validator Debug] - Using Custom Auth Provider`);
-                    return yield (0, CustomAuthCheck_1.customAuthCheck)(cid, authorizationHeader, this.customAuthVerifier, this.logger);
-                }
-                else if (authProvider.toLowerCase() == AuthProviders_1.AUTH_PROVIDERS.google) {
+                        this.logger.compute(cid, `[Validator Debug] - Auth Provider: [${authProvider}]`);
+                    // Retrieve the audience that the token will be validated against
+                    // That is the audience that is expected to be found in the token
+                    const expectedAudience = this.config.getExpectedAudience(authProvider);
                     if (this.debugMode === true)
-                        this.logger.compute(cid, `[Validator Debug] - Using Google Auth Provider`);
-                    const googleAuthCheckResult = yield (0, GoogleAuthCheck_1.googleAuthCheck)(cid, authorizationHeader, String(expectedAudience), this.logger, this.debugMode);
-                    if (this.debugMode === true)
-                        this.logger.compute(cid, `[Validator Debug] - UserContext created by Google Auth Check: [${JSON.stringify(GoogleAuthCheck_1.googleAuthCheck)}]`);
-                    return googleAuthCheckResult;
-                }
-                else {
-                    if (this.debugMode === true)
-                        this.logger.compute(cid, `[Validator Debug] - UserContext will be null as no Auth Provider could be determined.`);
+                        this.logger.compute(cid, `[Validator Debug] - Expected Audience: [${expectedAudience}]`);
+                    if (this.customAuthVerifier && authProvider.toLowerCase() == this.customAuthVerifier.getAuthProvider().toLowerCase()) {
+                        if (this.debugMode === true)
+                            this.logger.compute(cid, `[Validator Debug] - Using Custom Auth Provider`);
+                        return yield (0, CustomAuthCheck_1.customAuthCheck)(cid, authorizationHeader, this.customAuthVerifier, this.logger);
+                    }
+                    else if (authProvider.toLowerCase() == AuthProviders_1.AUTH_PROVIDERS.google) {
+                        if (this.debugMode === true)
+                            this.logger.compute(cid, `[Validator Debug] - Using Google Auth Provider`);
+                        const googleAuthCheckResult = yield (0, GoogleAuthCheck_1.googleAuthCheck)(cid, authorizationHeader, String(expectedAudience), this.logger, this.debugMode);
+                        if (this.debugMode === true)
+                            this.logger.compute(cid, `[Validator Debug] - UserContext created by Google Auth Check: [${JSON.stringify(GoogleAuthCheck_1.googleAuthCheck)}]`);
+                        return googleAuthCheckResult;
+                    }
+                    else {
+                        if (this.debugMode === true)
+                            this.logger.compute(cid, `[Validator Debug] - UserContext will be null as no Auth Provider could be determined.`);
+                    }
                 }
             }
         });

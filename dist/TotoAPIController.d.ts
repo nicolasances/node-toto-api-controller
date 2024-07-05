@@ -3,6 +3,7 @@ import { Logger } from './logger/TotoLogger';
 import { TotoControllerConfig } from './model/TotoControllerConfig';
 import { Validator } from './validation/Validator';
 import { TotoDelegate } from './model/TotoDelegate';
+import { TotoPathOptions } from './model/TotoPathOptions';
 export declare class TotoControllerOptions {
     debugMode: boolean;
 }
@@ -52,8 +53,9 @@ export declare class TotoAPIController {
      *  - method:   the HTTP method. Can be GET, POST, PUT, DELETE
      *  - path:     the path as expected by express. E.g. '/sessions/:id'
      *  - delegate: the delegate that exposes a do() function. Note that the delegate will always receive the entire req object
+     *  - options:  optional options to path
      */
-    path(method: string, path: string, delegate: TotoDelegate): void;
+    path(method: string, path: string, delegate: TotoDelegate, options?: TotoPathOptions): void;
     /**
      * Starts the ExpressJS app by listening on the standard port defined for Toto microservices
      */

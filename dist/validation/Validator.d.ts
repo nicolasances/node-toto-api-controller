@@ -4,6 +4,7 @@ import { Request } from "express";
 import { UserContext } from "../model/UserContext";
 import { TotoControllerConfig } from "../model/TotoControllerConfig";
 import { Logger } from "../logger/TotoLogger";
+import { TotoPathOptions } from "../model/TotoPathOptions";
 /**
  * Base Validator for HTTP Requests
  */
@@ -25,7 +26,7 @@ export declare class Validator {
      * @param req Request the Express request
      * @returns a Promise
      */
-    validate(req: Request): Promise<UserContext | undefined>;
+    validate(req: Request, options?: TotoPathOptions): Promise<UserContext | undefined>;
 }
 export declare class ValidationError extends Error {
     code: number;

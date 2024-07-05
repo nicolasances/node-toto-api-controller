@@ -184,15 +184,16 @@ class TotoAPIController {
      *  - method:   the HTTP method. Can be GET, POST, PUT, DELETE
      *  - path:     the path as expected by express. E.g. '/sessions/:id'
      *  - delegate: the delegate that exposes a do() function. Note that the delegate will always receive the entire req object
+     *  - options:  optional options to path
      */
-    path(method, path, delegate) {
+    path(method, path, delegate, options) {
         const handleRequest = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const cid = String(req.headers['x-correlation-id']);
             try {
                 // Log the fact that a call has been received
                 this.logger.apiIn(cid, method, path);
                 // Validating
-                const userContext = yield this.validator.validate(req);
+                const userContext = yield this.validator.validate(req, options);
                 const executionContext = new ExecutionContext_1.ExecutionContext(this.logger, this.apiName, this.config, cid, String(req.headers['x-app-version']));
                 // Execute the GET
                 const data = yield delegate.do(req, userContext, executionContext);
