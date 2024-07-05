@@ -41,7 +41,7 @@ export declare class TotoAPIController {
      * @param {object} options options to configure this path:
      *  - contentType: (OPT, default null) provide the Content-Type header to the response
      */
-    streamGET(path: string, delegate: TotoDelegate, options: any): void;
+    streamGET(path: string, delegate: TotoDelegate, options: TotoPathOptions): void;
     /**
      * Adds a path that support uploading files
      *  - path:     the path as expected by express. E.g. '/upload'

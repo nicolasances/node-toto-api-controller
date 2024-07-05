@@ -11,6 +11,9 @@ Once started, the API Controller will listen on port 8080. <br/>
 It will also publish the following endpoints:
  * `GET /`          - Health check of the API
 
+## Minor release 11.6.0
+Added support to path-level options to `streamGET` path types.
+
 ## Minor release 11.5.0
 Now allows to configure authorization on a path-level: it is now possible to specify if a specific route (path) can be open (auth free).
 

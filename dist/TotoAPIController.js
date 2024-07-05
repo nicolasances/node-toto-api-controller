@@ -93,7 +93,7 @@ class TotoAPIController {
      */
     streamGET(path, delegate, options) {
         this.app.route(path).get((req, res, next) => {
-            this.validator.validate(req).then((userContext) => {
+            this.validator.validate(req, options).then((userContext) => {
                 this.logger.apiIn(req.headers['x-correlation-id'], 'GET', path);
                 const executionContext = new ExecutionContext_1.ExecutionContext(this.logger, this.apiName, this.config, String(req.headers['x-correlation-id']), String(req.headers['x-app-version']));
                 // Execute the GET
