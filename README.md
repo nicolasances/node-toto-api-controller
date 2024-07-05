@@ -11,6 +11,11 @@ Once started, the API Controller will listen on port 8080. <br/>
 It will also publish the following endpoints:
  * `GET /`          - Health check of the API
 
+## Minor release 11.5.0
+Now allows to configure authorization on a path-level: it is now possible to specify if a specific route (path) can be open (auth free).
+
+To do so, you can now pass in the `api.path()` registration method a `TotoPathOptions` object with `noAuth: true` if that specific route is not subject to Authentication.
+
 ## Major release 11.0.0
 Non-backward compatible release moving to Typescript.
 

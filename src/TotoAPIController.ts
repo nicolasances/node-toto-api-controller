@@ -11,6 +11,7 @@ import { TotoDelegate } from './model/TotoDelegate';
 import { ExecutionContext } from './model/ExecutionContext';
 import { SmokeDelegate } from './dlg/SmokeDelegate';
 import { TotoRuntimeError } from './model/TotoRuntimeError';
+import { TotoPathOptions } from './model/TotoPathOptions';
 
 export class TotoControllerOptions {
     debugMode: boolean = false
@@ -216,8 +217,9 @@ export class TotoAPIController {
      *  - method:   the HTTP method. Can be GET, POST, PUT, DELETE
      *  - path:     the path as expected by express. E.g. '/sessions/:id'
      *  - delegate: the delegate that exposes a do() function. Note that the delegate will always receive the entire req object
+     *  - options:  optional options to path
      */
-    path(method: string, path: string, delegate: TotoDelegate) {
+    path(method: string, path: string, delegate: TotoDelegate, options?: TotoPathOptions) {
 
         const handleRequest = async (req: Request, res: Response) => {
 
@@ -229,7 +231,7 @@ export class TotoAPIController {
                 this.logger.apiIn(cid, method, path);
 
                 // Validating
-                const userContext = await this.validator.validate(req);
+                const userContext = await this.validator.validate(req, options);
 
                 const executionContext = new ExecutionContext(this.logger, this.apiName, this.config, cid, String(req.headers['x-app-version']))
 
