@@ -97,11 +97,11 @@ export class TotoAPIController {
      * @param {object} options options to configure this path: 
      *  - contentType: (OPT, default null) provide the Content-Type header to the response
      */
-    streamGET(path: string, delegate: TotoDelegate, options: any) {
+    streamGET(path: string, delegate: TotoDelegate, options: TotoPathOptions) {
 
         this.app.route(path).get((req: Request, res: Response, next) => {
 
-            this.validator.validate(req).then((userContext) => {
+            this.validator.validate(req, options).then((userContext) => {
 
                 this.logger.apiIn(req.headers['x-correlation-id'], 'GET', path);
 
