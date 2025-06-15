@@ -1,6 +1,6 @@
 {
   "name": "toto-api-controller",
-  "version": "12.0.2",
+  "version": "12.0.3",
   "description": "",
   "main": "./dist/TotoAPIController.js",
   "types": "./dist/TotoAPIController.d.ts",

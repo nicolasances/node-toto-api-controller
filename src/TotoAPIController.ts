@@ -13,21 +13,21 @@ import { SmokeDelegate } from './dlg/SmokeDelegate';
 import { TotoRuntimeError } from './model/TotoRuntimeError';
 import { TotoPathOptions } from './model/TotoPathOptions';
 
-export * from './logger/TotoLogger'
-export {CustomAuthVerifier, AuthCheckResult} from './model/CustomAuthVerifier'
-export * from './model/AuthProviders'
-export * from './model/ExecutionContext'
-export * from './model/TotoControllerConfig'
-export * from './model/TotoDelegate'
-export * from './model/TotoPathOptions'
-export * from './model/TotoRuntimeError'
-export * from './model/UserContext'
-export * from './model/ValidatorProps'
-export * from './util/CorrelationId'
-export * from './util/ErrorUtil'
-export * from './validation/CustomAuthCheck'
-export * from './validation/GoogleAuthCheck'
-export * from './validation/Validator'
+export { Logger } from './logger/TotoLogger'
+export { CustomAuthVerifier, AuthCheckResult } from './model/CustomAuthVerifier'
+export { AUTH_PROVIDERS } from './model/AuthProviders'
+export { ExecutionContext } from './model/ExecutionContext'
+export { TotoControllerConfig } from './model/TotoControllerConfig'
+export { FakeRequest, TotoDelegate } from './model/TotoDelegate'
+export { TotoPathOptions } from './model/TotoPathOptions'
+export { TotoRuntimeError } from './model/TotoRuntimeError'
+export { UserContext } from './model/UserContext'
+export { ValidatorProps } from './model/ValidatorProps'
+export { correlationId } from './util/CorrelationId'
+export { basicallyHandleError } from './util/ErrorUtil'
+export { customAuthCheck } from './validation/CustomAuthCheck'
+export { googleAuthCheck } from './validation/GoogleAuthCheck'
+export { ConfigMock, LazyValidator, ValidationError, Validator } from './validation/Validator'
 
 export class TotoControllerOptions {
     debugMode: boolean = false

@@ -38,7 +38,6 @@ const ExecutionContext_1 = require("./model/ExecutionContext");
 const SmokeDelegate_1 = require("./dlg/SmokeDelegate");
 const TotoRuntimeError_1 = require("./model/TotoRuntimeError");
 __exportStar(require("./logger/TotoLogger"), exports);
-__exportStar(require("./model/CustomAuthVerifier"), exports);
 __exportStar(require("./model/AuthProviders"), exports);
 __exportStar(require("./model/ExecutionContext"), exports);
 __exportStar(require("./model/TotoControllerConfig"), exports);
