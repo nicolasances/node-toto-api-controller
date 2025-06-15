@@ -13,6 +13,22 @@ import { SmokeDelegate } from './dlg/SmokeDelegate';
 import { TotoRuntimeError } from './model/TotoRuntimeError';
 import { TotoPathOptions } from './model/TotoPathOptions';
 
+export * from './logger/TotoLogger'
+export * from './model/CustomAuthVerifier'
+export * from './model/AuthProviders'
+export * from './model/ExecutionContext'
+export * from './model/TotoControllerConfig'
+export * from './model/TotoDelegate'
+export * from './model/TotoPathOptions'
+export * from './model/TotoRuntimeError'
+export * from './model/UserContext'
+export * from './model/ValidatorProps'
+export * from './util/CorrelationId'
+export * from './util/ErrorUtil'
+export * from './validation/CustomAuthCheck'
+export * from './validation/GoogleAuthCheck'
+export * from './validation/Validator'
+
 export class TotoControllerOptions {
     debugMode: boolean = false
 }

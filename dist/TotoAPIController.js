@@ -1,4 +1,18 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -23,6 +37,21 @@ const Validator_1 = require("./validation/Validator");
 const ExecutionContext_1 = require("./model/ExecutionContext");
 const SmokeDelegate_1 = require("./dlg/SmokeDelegate");
 const TotoRuntimeError_1 = require("./model/TotoRuntimeError");
+__exportStar(require("./logger/TotoLogger"), exports);
+__exportStar(require("./model/CustomAuthVerifier"), exports);
+__exportStar(require("./model/AuthProviders"), exports);
+__exportStar(require("./model/ExecutionContext"), exports);
+__exportStar(require("./model/TotoControllerConfig"), exports);
+__exportStar(require("./model/TotoDelegate"), exports);
+__exportStar(require("./model/TotoPathOptions"), exports);
+__exportStar(require("./model/TotoRuntimeError"), exports);
+__exportStar(require("./model/UserContext"), exports);
+__exportStar(require("./model/ValidatorProps"), exports);
+__exportStar(require("./util/CorrelationId"), exports);
+__exportStar(require("./util/ErrorUtil"), exports);
+__exportStar(require("./validation/CustomAuthCheck"), exports);
+__exportStar(require("./validation/GoogleAuthCheck"), exports);
+__exportStar(require("./validation/Validator"), exports);
 class TotoControllerOptions {
     constructor() {
         this.debugMode = false;
