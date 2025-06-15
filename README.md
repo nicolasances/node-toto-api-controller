@@ -11,6 +11,17 @@ Once started, the API Controller will listen on port 8080. <br/>
 It will also publish the following endpoints:
  * `GET /`          - Health check of the API
 
+## Version 12.0.0
+Added exports from the root of all exported modules. <br>
+This allows imports to look like this: 
+```
+import { TotoRuntimeError } from "toto-api-controller";
+```
+instead of the old 
+```
+import { TotoRuntimeError } from "toto-api-controller/dist/model/TotoRuntimeError";
+```
+
 ## Minor release 11.6.0
 Added support to path-level options to `streamGET` path types.
 
