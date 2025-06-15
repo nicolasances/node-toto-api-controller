@@ -11,7 +11,7 @@ Once started, the API Controller will listen on port 8080. <br/>
 It will also publish the following endpoints:
  * `GET /`          - Health check of the API
 
-## Version 12.0.0
+## Version 12.0.3
 Added exports from the root of all exported modules. <br>
 This allows imports to look like this: 
 ```
