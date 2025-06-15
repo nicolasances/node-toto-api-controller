@@ -14,7 +14,7 @@ import { TotoRuntimeError } from './model/TotoRuntimeError';
 import { TotoPathOptions } from './model/TotoPathOptions';
 
 export * from './logger/TotoLogger'
-export * from './model/CustomAuthVerifier'
+export {CustomAuthVerifier, AuthCheckResult} from './model/CustomAuthVerifier'
 export * from './model/AuthProviders'
 export * from './model/ExecutionContext'
 export * from './model/TotoControllerConfig'
