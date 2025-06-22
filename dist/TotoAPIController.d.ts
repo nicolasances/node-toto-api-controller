@@ -5,7 +5,7 @@ import { Validator } from './validation/Validator';
 import { TotoDelegate } from './model/TotoDelegate';
 import { TotoPathOptions } from './model/TotoPathOptions';
 export { Logger } from './logger/TotoLogger';
-export { CustomAuthVerifier, AuthCheckResult } from './model/CustomAuthVerifier';
+export { CustomAuthVerifier, AuthCheckResult, IdToken } from './model/CustomAuthVerifier';
 export { AUTH_PROVIDERS } from './model/AuthProviders';
 export { ExecutionContext } from './model/ExecutionContext';
 export { TotoControllerConfig } from './model/TotoControllerConfig';
