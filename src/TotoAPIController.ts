@@ -13,10 +13,19 @@ import { SmokeDelegate } from './dlg/SmokeDelegate';
 import { TotoRuntimeError } from './model/TotoRuntimeError';
 import { TotoPathOptions } from './model/TotoPathOptions';
 
+export { Logger } from './logger/TotoLogger'
 export { AUTH_PROVIDERS } from './model/AuthProviders'
+export { ExecutionContext } from './model/ExecutionContext'
+export { TotoControllerConfig } from './model/TotoControllerConfig'
+export { FakeRequest, TotoDelegate } from './model/TotoDelegate'
+export { TotoPathOptions } from './model/TotoPathOptions'
+export { TotoRuntimeError } from './model/TotoRuntimeError'
+export { UserContext } from './model/UserContext'
+export { ValidatorProps } from './model/ValidatorProps'
 export { correlationId } from './util/CorrelationId'
 export { basicallyHandleError } from './util/ErrorUtil'
 export { googleAuthCheck } from './validation/GoogleAuthCheck'
+export { ConfigMock, LazyValidator, ValidationError, Validator } from './validation/Validator'
 export { SecretsManager } from './util/CrossCloudSecret'
 
 export class TotoControllerOptions {
