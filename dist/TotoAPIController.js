@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TotoAPIController = exports.TotoControllerOptions = exports.Validator = exports.ValidationError = exports.LazyValidator = exports.ConfigMock = exports.googleAuthCheck = exports.customAuthCheck = exports.basicallyHandleError = exports.correlationId = exports.TotoRuntimeError = exports.ExecutionContext = exports.AUTH_PROVIDERS = exports.Logger = void 0;
+exports.TotoAPIController = exports.TotoControllerOptions = exports.SecretsManager = exports.googleAuthCheck = exports.basicallyHandleError = exports.correlationId = exports.AUTH_PROVIDERS = void 0;
 const body_parser_1 = __importDefault(require("body-parser"));
 const connect_busboy_1 = __importDefault(require("connect-busboy"));
 const path_1 = __importDefault(require("path"));
@@ -23,27 +23,16 @@ const Validator_1 = require("./validation/Validator");
 const ExecutionContext_1 = require("./model/ExecutionContext");
 const SmokeDelegate_1 = require("./dlg/SmokeDelegate");
 const TotoRuntimeError_1 = require("./model/TotoRuntimeError");
-var TotoLogger_2 = require("./logger/TotoLogger");
-Object.defineProperty(exports, "Logger", { enumerable: true, get: function () { return TotoLogger_2.Logger; } });
 var AuthProviders_1 = require("./model/AuthProviders");
 Object.defineProperty(exports, "AUTH_PROVIDERS", { enumerable: true, get: function () { return AuthProviders_1.AUTH_PROVIDERS; } });
-var ExecutionContext_2 = require("./model/ExecutionContext");
-Object.defineProperty(exports, "ExecutionContext", { enumerable: true, get: function () { return ExecutionContext_2.ExecutionContext; } });
-var TotoRuntimeError_2 = require("./model/TotoRuntimeError");
-Object.defineProperty(exports, "TotoRuntimeError", { enumerable: true, get: function () { return TotoRuntimeError_2.TotoRuntimeError; } });
 var CorrelationId_1 = require("./util/CorrelationId");
 Object.defineProperty(exports, "correlationId", { enumerable: true, get: function () { return CorrelationId_1.correlationId; } });
 var ErrorUtil_1 = require("./util/ErrorUtil");
 Object.defineProperty(exports, "basicallyHandleError", { enumerable: true, get: function () { return ErrorUtil_1.basicallyHandleError; } });
-var CustomAuthCheck_1 = require("./validation/CustomAuthCheck");
-Object.defineProperty(exports, "customAuthCheck", { enumerable: true, get: function () { return CustomAuthCheck_1.customAuthCheck; } });
 var GoogleAuthCheck_1 = require("./validation/GoogleAuthCheck");
 Object.defineProperty(exports, "googleAuthCheck", { enumerable: true, get: function () { return GoogleAuthCheck_1.googleAuthCheck; } });
-var Validator_2 = require("./validation/Validator");
-Object.defineProperty(exports, "ConfigMock", { enumerable: true, get: function () { return Validator_2.ConfigMock; } });
-Object.defineProperty(exports, "LazyValidator", { enumerable: true, get: function () { return Validator_2.LazyValidator; } });
-Object.defineProperty(exports, "ValidationError", { enumerable: true, get: function () { return Validator_2.ValidationError; } });
-Object.defineProperty(exports, "Validator", { enumerable: true, get: function () { return Validator_2.Validator; } });
+var CrossCloudSecret_1 = require("./util/CrossCloudSecret");
+Object.defineProperty(exports, "SecretsManager", { enumerable: true, get: function () { return CrossCloudSecret_1.SecretsManager; } });
 class TotoControllerOptions {
     constructor() {
         this.debugMode = false;
@@ -71,6 +60,7 @@ class TotoAPIController {
         this.logger = new TotoLogger_1.Logger(apiName);
         this.config = config;
         this.options = options;
+        this.config.logger = this.logger;
         // Log some configuration properties
         if (options.debugMode)
             this.logger.compute("", `[TotoAPIController Debug] - Config Properties: ${JSON.stringify(config.getProps())}`);

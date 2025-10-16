@@ -14,4 +14,9 @@ export interface ValidatorProps {
      * Default is null
      */
     minAppVersion?: string;
+    /**
+     * This property is the name of the auth provider that is expected to be used as a custom auth provider.
+     * IMPORTANT: if none is used, then no custom auth provider can be used and JWT tokens with an unrecognized auth provider will be rejected.
+     */
+    customAuthProvider?: string;
 }

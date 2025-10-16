@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -10,7 +33,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConfigMock = exports.LazyValidator = exports.ValidationError = exports.Validator = void 0;
-const CustomAuthCheck_1 = require("./CustomAuthCheck");
+const jwt = __importStar(require("jsonwebtoken"));
 const GoogleAuthCheck_1 = require("./GoogleAuthCheck");
 const AuthProviders_1 = require("../model/AuthProviders");
 const TotoLogger_1 = require("../logger/TotoLogger");
@@ -27,6 +50,9 @@ const decodeJWT = (authorizationHeader) => {
         return decodedValue;
     }
     return null;
+};
+const extractTokenFromAuthHeader = (authorizationHeader) => {
+    return String(authorizationHeader).substring('Bearer'.length + 1);
 };
 /**
  * Finds out what the Auth Provider of the JWT token is.
@@ -51,12 +77,10 @@ class Validator {
      *
      * @param {object} props Propertiess
      * @param {object} logger the toto logger
-     * @param {object} customAuthVerifier a custom auth verifier
      */
     constructor(config, logger, debugMode = false) {
         this.props = config.getProps();
         this.logger = logger;
-        this.customAuthVerifier = config.getCustomAuthVerifier();
         this.config = config;
         this.debugMode = debugMode;
         if (debugMode)
@@ -108,10 +132,18 @@ class Validator {
                     const expectedAudience = this.config.getExpectedAudience(authProvider);
                     if (this.debugMode === true)
                         this.logger.compute(cid, `[Validator Debug] - Expected Audience: [${expectedAudience}]`);
-                    if (this.customAuthVerifier && authProvider.toLowerCase() == this.customAuthVerifier.getAuthProvider().toLowerCase()) {
+                    if (this.config.getProps().customAuthProvider && authProvider.toLowerCase() == this.config.getProps().customAuthProvider.toLowerCase()) {
                         if (this.debugMode === true)
-                            this.logger.compute(cid, `[Validator Debug] - Using Custom Auth Provider`);
-                        return yield (0, CustomAuthCheck_1.customAuthCheck)(cid, authorizationHeader, this.customAuthVerifier, this.logger);
+                            this.logger.compute(cid, `[Validator Debug] - Using Custom Auth Provider ${this.config.getProps().customAuthProvider}]. Verifying token`);
+                        // Get the Toto JWT signing key
+                        const key = this.config.getSigningKey();
+                        // Verify the token using jsonwebtoken
+                        const jwtPayload = jwt.verify(extractTokenFromAuthHeader(String(authorizationHeader)), key);
+                        return {
+                            email: jwtPayload.user,
+                            authProvider: jwtPayload.authProvider,
+                            userId: jwtPayload.user
+                        };
                     }
                     else if (authProvider.toLowerCase() == AuthProviders_1.AUTH_PROVIDERS.google) {
                         if (this.debugMode === true)
@@ -147,13 +179,16 @@ class LazyValidator extends Validator {
 }
 exports.LazyValidator = LazyValidator;
 class ConfigMock {
+    constructor() {
+        this.logger = new TotoLogger_1.Logger("ConfigMock");
+    }
+    getSigningKey() {
+        return "fake-key";
+    }
     load() {
         return __awaiter(this, void 0, void 0, function* () {
             return {};
         });
-    }
-    getCustomAuthVerifier() {
-        return undefined;
     }
     getProps() {
         return {};

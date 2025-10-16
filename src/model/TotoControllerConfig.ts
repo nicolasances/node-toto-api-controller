@@ -1,4 +1,4 @@
-import { Logger } from "toto-api-controller";
+import { Logger } from "../logger/TotoLogger";
 import { ValidatorProps } from "./ValidatorProps";
 
 export interface TotoControllerConfig {
