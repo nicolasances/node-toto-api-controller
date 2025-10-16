@@ -2,6 +2,7 @@
 The Toto API Controller is a façade to expressJS to make it easier building an API.
 
 The complete documentation of each version is here: 
+ * [Version 13.0.0](docs/13.0.0.md)
  * [Version 11.0.0](docs/11.0.0.md)
  * [Version 10.0.0](docs/10.0.0.md)
  * [Version 9.5.0](docs/9.5.0.md)
@@ -10,6 +11,27 @@ The complete documentation of each version is here:
 Once started, the API Controller will listen on port 8080. <br/>
 It will also publish the following endpoints:
  * `GET /`          - Health check of the API
+
+## Version 13.0.0
+
+1. **Simplified JWT Token Verification**. <br>
+Custom JWT tokens are now verified without the need of an API call. <br>
+They are just verified by using the `jwt.verify()` method, that uses the secret (JWT Signing Key) to check the validity of the token. <br>
+If the key stored in your **Secrets Manager** is the key that was used to sign the token than the auth succeeds. 
+
+That also means that:
+
+* `getCustomAuthVerifier()` in the `Config` is no longer needed (it has been removed from the interface). 
+* `getProps()` should now return `customAuthProvider: "toto"` as part of the payload, if the service supports Toto Auth.
+* `getSigningKey()` is a new method that should return the JWT signing key used to sign Toto tokens (the key must be loaded from the secrets manager).
+
+
+2. **Multi-hyperscalers**<br>
+A Toto Microservice can now run on **GCP and AWS**. That means that concretely: 
+    * Secrets are extracted from GCP Secrets Manager or AWS Secrets Manager based on the enviornment the Microservice runs in. <br>
+    The environment is made by: 
+        * A Hyperscaler (env var)
+        * An Enviroenmtn (e.g. dev, test, prod)
 
 ## Version 12.0.4
 Added exports from the root of all exported modules. <br>
