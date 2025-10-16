@@ -17,6 +17,7 @@ export { AUTH_PROVIDERS } from './model/AuthProviders'
 export { correlationId } from './util/CorrelationId'
 export { basicallyHandleError } from './util/ErrorUtil'
 export { googleAuthCheck } from './validation/GoogleAuthCheck'
+export { SecretsManager } from './util/CrossCloudSecret'
 
 export class TotoControllerOptions {
     debugMode: boolean = false
