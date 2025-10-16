@@ -13,21 +13,10 @@ import { SmokeDelegate } from './dlg/SmokeDelegate';
 import { TotoRuntimeError } from './model/TotoRuntimeError';
 import { TotoPathOptions } from './model/TotoPathOptions';
 
-export { Logger } from './logger/TotoLogger'
-export { CustomAuthVerifier, AuthCheckResult, IdToken } from './model/CustomAuthVerifier'
 export { AUTH_PROVIDERS } from './model/AuthProviders'
-export { ExecutionContext } from './model/ExecutionContext'
-export { TotoControllerConfig } from './model/TotoControllerConfig'
-export { FakeRequest, TotoDelegate } from './model/TotoDelegate'
-export { TotoPathOptions } from './model/TotoPathOptions'
-export { TotoRuntimeError } from './model/TotoRuntimeError'
-export { UserContext } from './model/UserContext'
-export { ValidatorProps } from './model/ValidatorProps'
 export { correlationId } from './util/CorrelationId'
 export { basicallyHandleError } from './util/ErrorUtil'
-export { customAuthCheck } from './validation/CustomAuthCheck'
 export { googleAuthCheck } from './validation/GoogleAuthCheck'
-export { ConfigMock, LazyValidator, ValidationError, Validator } from './validation/Validator'
 
 export class TotoControllerOptions {
     debugMode: boolean = false
@@ -62,6 +51,8 @@ export class TotoAPIController {
         this.logger = new Logger(apiName)
         this.config = config;
         this.options = options;
+
+        this.config.logger = this.logger;
 
         // Log some configuration properties
         if (options.debugMode) this.logger.compute("", `[TotoAPIController Debug] - Config Properties: ${JSON.stringify(config.getProps())}`)

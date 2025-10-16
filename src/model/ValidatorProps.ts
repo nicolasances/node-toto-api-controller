@@ -17,7 +17,13 @@ export interface ValidatorProps {
      * This property allows the backend to configure the min app version needed from the client in order to be supported
      * Default is null
      */
-    minAppVersion?: string
+    minAppVersion?: string, 
+
+    /**
+     * This property is the name of the auth provider that is expected to be used as a custom auth provider. 
+     * IMPORTANT: if none is used, then no custom auth provider can be used and JWT tokens with an unrecognized auth provider will be rejected.
+     */
+    customAuthProvider?: string;
 
 
 }

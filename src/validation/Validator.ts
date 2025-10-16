@@ -1,14 +1,13 @@
 
 import { ValidatorProps } from "../model/ValidatorProps";
-import { CustomAuthVerifier } from "../model/CustomAuthVerifier";
 import { Request } from "express";
-import { customAuthCheck } from "./CustomAuthCheck";
+import * as jwt from 'jsonwebtoken';
 import { UserContext } from "../model/UserContext";
 import { googleAuthCheck } from "./GoogleAuthCheck";
 import { TotoControllerConfig } from "../model/TotoControllerConfig";
 import { AUTH_PROVIDERS } from "../model/AuthProviders";
-import { Logger } from "../logger/TotoLogger";
 import { TotoPathOptions } from "../model/TotoPathOptions";
+import { Logger } from "../logger/TotoLogger";
 
 /**
  * Extracts the Bearer token from the HTTP Authorization header and decodes it
@@ -25,6 +24,10 @@ const decodeJWT = (authorizationHeader: string) => {
     return decodedValue;
   }
   return null;
+}
+
+const extractTokenFromAuthHeader = (authorizationHeader: string): string => {
+  return String(authorizationHeader).substring('Bearer'.length + 1);
 }
 
 /**
@@ -52,7 +55,6 @@ export class Validator {
 
   props: ValidatorProps;
   logger: Logger;
-  customAuthVerifier?: CustomAuthVerifier;
   config: TotoControllerConfig;
   debugMode: boolean
 
@@ -60,12 +62,10 @@ export class Validator {
    * 
    * @param {object} props Propertiess
    * @param {object} logger the toto logger
-   * @param {object} customAuthVerifier a custom auth verifier
    */
   constructor(config: TotoControllerConfig, logger: Logger, debugMode: boolean = false) {
     this.props = config.getProps();
     this.logger = logger;
-    this.customAuthVerifier = config.getCustomAuthVerifier();
     this.config = config;
     this.debugMode = debugMode;
 
@@ -129,11 +129,22 @@ export class Validator {
 
         if (this.debugMode === true) this.logger.compute(cid, `[Validator Debug] - Expected Audience: [${expectedAudience}]`)
 
-        if (this.customAuthVerifier && authProvider.toLowerCase() == this.customAuthVerifier.getAuthProvider().toLowerCase()) {
+        if (this.config.getProps().customAuthProvider && authProvider.toLowerCase() == this.config.getProps().customAuthProvider!.toLowerCase()) {
 
-          if (this.debugMode === true) this.logger.compute(cid, `[Validator Debug] - Using Custom Auth Provider`)
+          if (this.debugMode === true) this.logger.compute(cid, `[Validator Debug] - Using Custom Auth Provider ${this.config.getProps().customAuthProvider}]. Verifying token`);
 
-          return await customAuthCheck(cid, authorizationHeader, this.customAuthVerifier, this.logger);
+          // Get the Toto JWT signing key
+          const key = this.config.getSigningKey();
+
+          // Verify the token using jsonwebtoken
+          const jwtPayload = jwt.verify(extractTokenFromAuthHeader(String(authorizationHeader)), key) as any;
+
+          return {
+            email: jwtPayload.user,
+            authProvider: jwtPayload.authProvider,
+            userId: jwtPayload.user
+          }
+
         }
         else if (authProvider.toLowerCase() == AUTH_PROVIDERS.google) {
 
@@ -180,12 +191,19 @@ export class LazyValidator extends Validator {
 }
 
 export class ConfigMock implements TotoControllerConfig {
+  
+  logger: Logger;
+
+  constructor() {
+    this.logger = new Logger("ConfigMock");
+  }
+
+  getSigningKey(): string {
+    return "fake-key";
+  }
 
   async load(): Promise<any> {
     return {}
-  }
-  getCustomAuthVerifier(): CustomAuthVerifier | undefined {
-    return undefined;
   }
   getProps(): ValidatorProps {
     return {}

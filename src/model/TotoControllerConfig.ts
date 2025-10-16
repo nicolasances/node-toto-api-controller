@@ -1,7 +1,9 @@
-import { CustomAuthVerifier } from "./CustomAuthVerifier";
+import { Logger } from "toto-api-controller";
 import { ValidatorProps } from "./ValidatorProps";
 
 export interface TotoControllerConfig {
+
+    logger: Logger | undefined;
 
     /**
      * Loads the configurations and returns a Promise when done
@@ -9,14 +11,14 @@ export interface TotoControllerConfig {
     load(): Promise<any>,
 
     /**
-     * Returns a CustomAuthVerifier, if any
-     */
-    getCustomAuthVerifier(): CustomAuthVerifier | undefined,
-
-    /**
      * Returns the Validator Properties
      */
     getProps(): ValidatorProps,
+
+    /**
+     * Return the JWT Token Signing Key for custom tokens
+     */
+    getSigningKey(): string, 
 
     /**
      * Returns the expected audience. 
