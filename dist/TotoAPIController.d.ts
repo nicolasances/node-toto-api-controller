@@ -19,7 +19,8 @@ export { googleAuthCheck } from './validation/GoogleAuthCheck';
 export { ConfigMock, LazyValidator, ValidationError, Validator } from './validation/Validator';
 export { SecretsManager } from './util/CrossCloudSecret';
 export declare class TotoControllerOptions {
-    debugMode: boolean;
+    debugMode?: boolean;
+    basePath?: string;
 }
 /**
  * This is an API controller to Toto APIs
@@ -47,7 +48,7 @@ export declare class TotoAPIController {
      * This method will register the specified path to allow access to the static content in the specified folder
      * e.g. staticContent('/img', '/app/img')
      */
-    staticContent(path: string, folder: string): void;
+    staticContent(path: string, folder: string, options?: TotoPathOptions): void;
     /**
      *
      * @param {string} path the path to which this API is reachable
@@ -55,12 +56,12 @@ export declare class TotoAPIController {
      * @param {object} options options to configure this path:
      *  - contentType: (OPT, default null) provide the Content-Type header to the response
      */
-    streamGET(path: string, delegate: TotoDelegate, options: TotoPathOptions): void;
+    streamGET(path: string, delegate: TotoDelegate, options?: TotoPathOptions): void;
     /**
      * Adds a path that support uploading files
      *  - path:     the path as expected by express. E.g. '/upload'
      */
-    fileUploadPath(path: string, delegate: TotoDelegate): void;
+    fileUploadPath(path: string, delegate: TotoDelegate, options?: TotoPathOptions): void;
     /**
      * Add a path to the app.
      * Requires:

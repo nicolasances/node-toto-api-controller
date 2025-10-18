@@ -47,6 +47,7 @@ Object.defineProperty(exports, "SecretsManager", { enumerable: true, get: functi
 class TotoControllerOptions {
     constructor() {
         this.debugMode = false;
+        this.basePath = undefined; // Use to prepend a base path to all API paths, e.g. '/api/v1' or '/expenses/v1'
     }
 }
 exports.TotoControllerOptions = TotoControllerOptions;
@@ -86,8 +87,9 @@ class TotoAPIController {
         this.app.use((0, connect_busboy_1.default)());
         this.app.use(express_1.default.static(path_1.default.join(__dirname, 'public')));
         // Add the standard Toto paths
-        // Add the basic SMOKE api
-        this.path('GET', '/', new SmokeDelegate_1.SmokeDelegate());
+        // Add the basic SMOKE api and /health endpoint. 
+        this.path('GET', '/', new SmokeDelegate_1.SmokeDelegate(), { noAuth: true, contentType: 'application/json', ignoreBasePath: true });
+        this.path('GET', '/health', new SmokeDelegate_1.SmokeDelegate(), { noAuth: true, contentType: 'application/json', ignoreBasePath: true });
         // Bindings
         this.staticContent = this.staticContent.bind(this);
         this.fileUploadPath = this.fileUploadPath.bind(this);
@@ -103,7 +105,10 @@ class TotoAPIController {
      * This method will register the specified path to allow access to the static content in the specified folder
      * e.g. staticContent('/img', '/app/img')
      */
-    staticContent(path, folder) {
+    staticContent(path, folder, options) {
+        // If a basepath is defined, prepend it to the path
+        // Make sure that the basePath does not end with "/". If it does remove it. 
+        const correctedPath = (this.options.basePath && (!options || !options.ignoreBasePath)) ? this.options.basePath.replace(/\/$/, '').trim() + path : path;
         this.app.use(path, express_1.default.static(folder));
     }
     /**
@@ -114,9 +119,12 @@ class TotoAPIController {
      *  - contentType: (OPT, default null) provide the Content-Type header to the response
      */
     streamGET(path, delegate, options) {
-        this.app.route(path).get((req, res, next) => {
+        // If a basepath is defined, prepend it to the path
+        // Make sure that the basePath does not end with "/". If it does remove it. 
+        const correctedPath = (this.options.basePath && (!options || !options.ignoreBasePath)) ? this.options.basePath.replace(/\/$/, '').trim() + path : path;
+        this.app.route(correctedPath).get((req, res, next) => {
             this.validator.validate(req, options).then((userContext) => {
-                this.logger.apiIn(req.headers['x-correlation-id'], 'GET', path);
+                this.logger.apiIn(req.headers['x-correlation-id'], 'GET', correctedPath);
                 const executionContext = new ExecutionContext_1.ExecutionContext(this.logger, this.apiName, this.config, String(req.headers['x-correlation-id']), String(req.headers['x-app-version']));
                 // Execute the GET
                 delegate.do(req, userContext, executionContext).then((stream) => {
@@ -148,9 +156,12 @@ class TotoAPIController {
      * Adds a path that support uploading files
      *  - path:     the path as expected by express. E.g. '/upload'
      */
-    fileUploadPath(path, delegate) {
-        this.app.route(path).post((req, res, next) => __awaiter(this, void 0, void 0, function* () {
-            this.logger.apiIn(req.headers['x-correlation-id'], 'POST', path);
+    fileUploadPath(path, delegate, options) {
+        // If a basepath is defined, prepend it to the path
+        // Make sure that the basePath does not end with "/". If it does remove it. 
+        const correctedPath = (this.options.basePath && (!options || !options.ignoreBasePath)) ? this.options.basePath.replace(/\/$/, '').trim() + path : path;
+        this.app.route(correctedPath).post((req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            this.logger.apiIn(req.headers['x-correlation-id'], 'POST', correctedPath);
             // Validating
             const userContext = yield this.validator.validate(req);
             let fstream;
@@ -198,7 +209,7 @@ class TotoAPIController {
             });
         }));
         // Log the added path
-        console.log('[' + this.apiName + '] - Successfully added method ' + 'POST' + ' ' + path);
+        console.log('[' + this.apiName + '] - Successfully added method ' + 'POST' + ' ' + correctedPath);
     }
     /**
      * Add a path to the app.
@@ -209,11 +220,14 @@ class TotoAPIController {
      *  - options:  optional options to path
      */
     path(method, path, delegate, options) {
+        // If a basepath is defined, prepend it to the path
+        // Make sure that the basePath does not end with "/". If it does remove it. 
+        const correctedPath = (this.options.basePath && (!options || !options.ignoreBasePath)) ? this.options.basePath.replace(/\/$/, '').trim() + path : path;
         const handleRequest = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const cid = String(req.headers['x-correlation-id']);
             try {
                 // Log the fact that a call has been received
-                this.logger.apiIn(cid, method, path);
+                this.logger.apiIn(cid, method, correctedPath);
                 // Validating
                 const userContext = yield this.validator.validate(req, options);
                 const executionContext = new ExecutionContext_1.ExecutionContext(this.logger, this.apiName, this.config, cid, String(req.headers['x-app-version']));
@@ -235,17 +249,17 @@ class TotoAPIController {
             }
         });
         if (method == "GET")
-            this.app.get(path, handleRequest);
+            this.app.get(correctedPath, handleRequest);
         else if (method == "POST")
-            this.app.post(path, handleRequest);
+            this.app.post(correctedPath, handleRequest);
         else if (method == "PUT")
-            this.app.put(path, handleRequest);
+            this.app.put(correctedPath, handleRequest);
         else if (method == "DELETE")
-            this.app.delete(path, handleRequest);
+            this.app.delete(correctedPath, handleRequest);
         else
-            this.app.get(path, handleRequest);
+            this.app.get(correctedPath, handleRequest);
         // Log the added path
-        console.log('[' + this.apiName + '] - Successfully added method ' + method + ' ' + path);
+        console.log('[' + this.apiName + '] - Successfully added method ' + method + ' ' + correctedPath);
     }
     /**
      * Starts the ExpressJS app by listening on the standard port defined for Toto microservices
