@@ -12,6 +12,14 @@ Once started, the API Controller will listen on port 8080. <br/>
 It will also publish the following endpoints:
  * `GET /`          - Health check of the API
 
+## Publishing on NPM
+To publish this package on NPM, first build it and the publish it... it's that easy. 
+
+```
+npm run build
+npm publish
+```
+
 ## Version 13.0.0
 
 1. **Simplified JWT Token Verification**. <br>
