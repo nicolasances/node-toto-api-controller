@@ -48,7 +48,6 @@ class TotoControllerOptions {
     constructor() {
         this.debugMode = false;
         this.basePath = undefined; // Use to prepend a base path to all API paths, e.g. '/api/v1' or '/expenses/v1'
-        this.port = 8080; // Use to define the port on which the Express app will listen. Default is 8080
     }
 }
 exports.TotoControllerOptions = TotoControllerOptions;
@@ -67,12 +66,17 @@ class TotoAPIController {
      * - config               : (mandatory) - a TotoControllerConfig instance
      */
     constructor(apiName, config, options = new TotoControllerOptions()) {
+        var _a, _b;
         this.validator = new Validator_1.LazyValidator();
         this.app = (0, express_1.default)();
         this.apiName = apiName;
         this.logger = new TotoLogger_1.Logger(apiName);
         this.config = config;
-        this.options = options;
+        this.options = {
+            debugMode: (_a = options.debugMode) !== null && _a !== void 0 ? _a : false,
+            basePath: options.basePath,
+            port: (_b = options.port) !== null && _b !== void 0 ? _b : 8080
+        };
         this.config.logger = this.logger;
         // Log some configuration properties
         if (options.debugMode)
