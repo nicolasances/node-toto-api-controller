@@ -48,6 +48,7 @@ class TotoControllerOptions {
     constructor() {
         this.debugMode = false;
         this.basePath = undefined; // Use to prepend a base path to all API paths, e.g. '/api/v1' or '/expenses/v1'
+        this.port = 8080; // Use to define the port on which the Express app will listen. Default is 8080
     }
 }
 exports.TotoControllerOptions = TotoControllerOptions;
@@ -270,8 +271,8 @@ class TotoAPIController {
             setTimeout(() => { this.listen(); }, 300);
             return;
         }
-        this.app.listen(8080, () => {
-            console.info('[' + this.apiName + '] - Microservice up and running');
+        this.app.listen(this.options.port, () => {
+            this.logger.compute("", `[${this.apiName}] - Microservice listening on port ${this.options.port}`, 'info');
         });
     }
 }
