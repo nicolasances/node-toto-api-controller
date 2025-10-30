@@ -21,6 +21,7 @@ export { SecretsManager } from './util/CrossCloudSecret';
 export declare class TotoControllerOptions {
     debugMode?: boolean;
     basePath?: string;
+    port?: number;
 }
 /**
  * This is an API controller to Toto APIs

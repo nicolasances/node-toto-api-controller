@@ -66,12 +66,17 @@ class TotoAPIController {
      * - config               : (mandatory) - a TotoControllerConfig instance
      */
     constructor(apiName, config, options = new TotoControllerOptions()) {
+        var _a, _b;
         this.validator = new Validator_1.LazyValidator();
         this.app = (0, express_1.default)();
         this.apiName = apiName;
         this.logger = new TotoLogger_1.Logger(apiName);
         this.config = config;
-        this.options = options;
+        this.options = {
+            debugMode: (_a = options.debugMode) !== null && _a !== void 0 ? _a : false,
+            basePath: options.basePath,
+            port: (_b = options.port) !== null && _b !== void 0 ? _b : 8080
+        };
         this.config.logger = this.logger;
         // Log some configuration properties
         if (options.debugMode)
@@ -270,8 +275,8 @@ class TotoAPIController {
             setTimeout(() => { this.listen(); }, 300);
             return;
         }
-        this.app.listen(8080, () => {
-            console.info('[' + this.apiName + '] - Microservice up and running');
+        this.app.listen(this.options.port, () => {
+            this.logger.compute("", `[${this.apiName}] - Microservice listening on port ${this.options.port}`, 'info');
         });
     }
 }

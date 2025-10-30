@@ -23,6 +23,11 @@ npm run build
 npm publish
 ```
 
+## Version 13.2.0
+
+1. **Option to start the server on other ports**. <br>
+It is now possible to change the default port of `8080` to anything else. 
+
 ## Version 13.0.0
 
 1. **Simplified JWT Token Verification**. <br>
