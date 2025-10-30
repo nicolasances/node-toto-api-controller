@@ -5,7 +5,9 @@
   "main": "./dist/TotoAPIController.js",
   "types": "./dist/TotoAPIController.d.ts",
   "scripts": {
-    "build": "rm -rf ./dist && tsc"
+    "build": "rm -rf ./dist && tsc",
+    "test": "mocha",
+    "test:watch": "mocha --watch"
   },
   "author": "",
   "license": "ISC",
@@ -31,6 +33,10 @@
     "@types/moment-timezone": "^0.5.30",
     "@types/mongodb": "^4.0.7",
     "@types/node": "^16.11.7",
+    "@types/mocha": "^10.0.0",
+    "@types/chai": "^4.3.0",
+    "mocha": "^10.0.0",
+    "chai": "^4.3.0",
     "nodemon": "^3.0.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
