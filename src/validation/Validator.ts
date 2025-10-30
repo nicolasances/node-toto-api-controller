@@ -14,7 +14,7 @@ import { Logger } from "../logger/TotoLogger";
  * @param authorizationHeader HTTP Auth header
  * @returns a decoded JWT token as a json object
  */
-const decodeJWT = (authorizationHeader: string) => {
+export const decodeJWT = (authorizationHeader: string) => {
 
   const token = String(authorizationHeader).substring('Bearer'.length + 1);
 
