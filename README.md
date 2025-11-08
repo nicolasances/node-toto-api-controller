@@ -2,7 +2,8 @@
 The Toto API Controller is a façade to expressJS to make it easier building an API.
 
 The complete documentation of each version is here: 
- * [Version 13.0.0 (latest)](docs/13.0.0.md) 
+ * [Version 14.0.0 (latest)](docs/14.0.0.md) 
+ * [Version 13.0.0](docs/13.0.0.md) 
  * [Version 11.0.0](docs/11.0.0.md)
  * [Version 10.0.0](docs/10.0.0.md)
  * [Version 9.5.0](docs/9.5.0.md)
@@ -22,6 +23,13 @@ To publish this package on NPM, first build it and the publish it... it's that e
 npm run build
 npm publish
 ```
+
+## Version 14.0.0
+
+1. **Different way to register Events Handlers from a PUSH PubSub offering**. <br>
+This was necessary to have a broader support to publish-subscribe infrastructure as currently only GCP PubSub was supported, but we want support also for AWS SNS and similar. <br>
+See [this issue](https://github.com/nicolasances/node-toto-api-controller/issues/16).<br>
+See [V14 Documentation](docs/14.0.0.md)
 
 ## Version 13.2.0
 

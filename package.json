@@ -23,7 +23,8 @@
     "jsonwebtoken": "^9.0.2",
     "moment-timezone": "^0.5.30",
     "path": "^0.12.7",
-    "request": "^2.88.2"
+    "request": "^2.88.2",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/connect-busboy": "^1.0.2",
