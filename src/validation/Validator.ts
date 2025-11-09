@@ -8,23 +8,7 @@ import { TotoControllerConfig } from "../model/TotoControllerConfig";
 import { AUTH_PROVIDERS } from "../model/AuthProviders";
 import { TotoPathOptions } from "../model/TotoPathOptions";
 import { Logger } from "../logger/TotoLogger";
-
-/**
- * Extracts the Bearer token from the HTTP Authorization header and decodes it
- * @param authorizationHeader HTTP Auth header
- * @returns a decoded JWT token as a json object
- */
-export const decodeJWT = (authorizationHeader: string) => {
-
-  const token = String(authorizationHeader).substring('Bearer'.length + 1);
-
-  if (token !== null || token !== undefined) {
-    const base64String = token.split(`.`)[1];
-    const decodedValue = JSON.parse(Buffer.from(base64String, `base64`).toString(`ascii`));
-    return decodedValue;
-  }
-  return null;
-}
+import { decodeJWT } from "../util/TokenUtil";
 
 const extractTokenFromAuthHeader = (authorizationHeader: string): string => {
   return String(authorizationHeader).substring('Bearer'.length + 1);
@@ -125,11 +109,11 @@ export class Validator {
 
         // Retrieve the audience that the token will be validated against
         // That is the audience that is expected to be found in the token
-        const expectedAudience = this.config.getExpectedAudience(authProvider);
+        const expectedAudience = this.config.getExpectedAudience();
 
         if (this.debugMode === true) this.logger.compute(cid, `[Validator Debug] - Expected Audience: [${expectedAudience}]`)
 
-        if (this.config.getProps().customAuthProvider && authProvider.toLowerCase() == this.config.getProps().customAuthProvider!.toLowerCase()) {
+        if (authProvider.toLowerCase() == AUTH_PROVIDERS.toto) {
 
           if (this.debugMode === true) this.logger.compute(cid, `[Validator Debug] - Using Custom Auth Provider ${this.config.getProps().customAuthProvider}]. Verifying token`);
 
@@ -190,12 +174,10 @@ export class LazyValidator extends Validator {
 
 }
 
-export class ConfigMock implements TotoControllerConfig {
+export class ConfigMock extends TotoControllerConfig {
   
-  logger: Logger;
-
   constructor() {
-    this.logger = new Logger("ConfigMock");
+    super({apiName: "fake-api"});
   }
 
   getSigningKey(): string {

@@ -26,10 +26,18 @@ npm publish
 
 ## Version 14.0.0
 
-1. **Different way to register Events Handlers from a PUSH PubSub offering**. <br>
-This was necessary to have a broader support to publish-subscribe infrastructure as currently only GCP PubSub was supported, but we want support also for AWS SNS and similar. <br>
-See [this issue](https://github.com/nicolasances/node-toto-api-controller/issues/16).<br>
-See [V14 Documentation](docs/14.0.0.md)
+1. **Event Handling**: event handlers are now registered separately than a normal REST endpoint. <br>
+    Support for: 
+    * AWS SNS
+    * GCP PubSub
+
+2. **Toto Token**: it is now possible to generate a JWT Token for a backend service, instead of relying on propagating tokens. <br>
+    This choice has been made to support scenarios where a service is called without a token (e.g. SNS HTTPS push endpoints).<br>
+    It is also more correct, for event handlers that need to call other Toto Services to use their own token (identity) rather than propagating something like a PubSub Service Account.
+
+3. **Toto Controller Config is now an Abstract Class**. <br>
+    Now you will need to `extend TotoControllerConfig` instead of using `implement` as it is no longer an interface but an abstract class.<br>
+    That was done to avoid boilerplate code to be rewritten all the time in every implementation of a Toto Microservice.
 
 ## Version 13.2.0
 
