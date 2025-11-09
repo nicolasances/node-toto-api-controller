@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { decodeJWT, Validator, ValidationError, LazyValidator } from '../src/validation/Validator';
+import { Validator, ValidationError, LazyValidator } from '../src/validation/Validator';
+import { decodeJWT } from '../src/util/TokenUtil';
 
 // Helper function to create mock JWT tokens
 const createMockJWT = (payload: any): string => {

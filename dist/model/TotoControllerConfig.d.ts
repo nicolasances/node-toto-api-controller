@@ -1,7 +1,14 @@
 import { Logger } from "../logger/TotoLogger";
 import { ValidatorProps } from "./ValidatorProps";
-export interface TotoControllerConfig {
+export declare abstract class TotoControllerConfig {
+    configuration: ConfigurationData;
     logger: Logger | undefined;
+    hyperscaler: "aws" | "gcp" | "local";
+    env: string;
+    protected mongoHost: string | undefined;
+    protected jwtSigningKey: string | undefined;
+    protected expectedAudience: string | undefined;
+    constructor(configuration: ConfigurationData);
     /**
      * Loads the configurations and returns a Promise when done
      */
@@ -9,7 +16,7 @@ export interface TotoControllerConfig {
     /**
      * Returns the Validator Properties
      */
-    getProps(): ValidatorProps;
+    abstract getProps(): ValidatorProps;
     /**
      * Return the JWT Token Signing Key for custom tokens
      */
@@ -19,8 +26,13 @@ export interface TotoControllerConfig {
      * The expected audience is used when verifying the Authorization's header Bearer JWT token.
      * The audience is extracted from the token and compared with the expected audience, to make sure
      * that the token was issued for the correct purpose (audience).
-     *
-     * @param authProvider A string with the code of the auth provider. Can be null, for which case this method is expected to return the expected audience for the default auth provider.
      */
-    getExpectedAudience(authProvider?: string): string;
+    getExpectedAudience(): string;
+    /**
+     * Returns the name of the API (service, microservice) managed by this controller.
+     */
+    getAPIName(): string;
+}
+export interface ConfigurationData {
+    apiName: string;
 }

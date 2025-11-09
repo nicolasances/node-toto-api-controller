@@ -9,22 +9,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.googleAuthCheck = void 0;
+exports.googleAuthCheck = googleAuthCheck;
 const AuthProviders_1 = require("../model/AuthProviders");
+const TokenUtil_1 = require("../util/TokenUtil");
 const { OAuth2Client } = require('google-auth-library');
-const decodeJWT = (token) => {
-    if (token !== null || token !== undefined) {
-        const base64String = token.split(`.`)[1];
-        const decodedValue = JSON.parse(Buffer.from(base64String, `base64`).toString(`ascii`));
-        return decodedValue;
-    }
-    return null;
-};
-function googleAuthCheck(cid, authorizationHeader, expectedAudience, logger, debugMode = false) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const token = authorizationHeader ? String(authorizationHeader).substring('Bearer'.length + 1) : null;
+function googleAuthCheck(cid_1, authorizationHeader_1, expectedAudience_1, logger_1) {
+    return __awaiter(this, arguments, void 0, function* (cid, authorizationHeader, expectedAudience, logger, debugMode = false) {
+        const token = (0, TokenUtil_1.extractTokenFromAuthHeader)(authorizationHeader);
         const client = new OAuth2Client(expectedAudience);
-        const decodedToken = decodeJWT(token);
+        const decodedToken = (0, TokenUtil_1.decodeJWT)(token);
         if (debugMode === true)
             logger.compute(cid, `[Google Auth Check Debug] - Decoded token: [${JSON.stringify(decodedToken)}]`);
         // Useful for debugging audience-related issues
@@ -43,4 +36,3 @@ function googleAuthCheck(cid, authorizationHeader, expectedAudience, logger, deb
         };
     });
 }
-exports.googleAuthCheck = googleAuthCheck;

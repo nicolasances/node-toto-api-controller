@@ -12,29 +12,46 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TotoAPIController = exports.TotoControllerOptions = exports.SecretsManager = exports.Validator = exports.ValidationError = exports.LazyValidator = exports.ConfigMock = exports.googleAuthCheck = exports.basicallyHandleError = exports.correlationId = exports.TotoRuntimeError = exports.ExecutionContext = exports.AUTH_PROVIDERS = exports.Logger = void 0;
+exports.TotoAPIController = exports.TotoControllerOptions = exports.Validator = exports.ValidationError = exports.LazyValidator = exports.ConfigMock = exports.googleAuthCheck = exports.SNSRequestValidator = exports.GCPPubSubRequestValidator = exports.basicallyHandleError = exports.SecretsManager = exports.correlationId = exports.TotoRuntimeError = exports.TotoControllerConfig = exports.ExecutionContext = exports.AUTH_PROVIDERS = exports.Logger = exports.PubSubImplementationsFactory = exports.APubSubRequestValidator = exports.APubSubImplementation = void 0;
 const body_parser_1 = __importDefault(require("body-parser"));
 const connect_busboy_1 = __importDefault(require("connect-busboy"));
-const path_1 = __importDefault(require("path"));
 const fs_extra_1 = __importDefault(require("fs-extra"));
 const express_1 = __importDefault(require("express"));
+const uuid_1 = require("uuid");
 const TotoLogger_1 = require("./logger/TotoLogger");
 const Validator_1 = require("./validation/Validator");
 const ExecutionContext_1 = require("./model/ExecutionContext");
 const SmokeDelegate_1 = require("./dlg/SmokeDelegate");
 const TotoRuntimeError_1 = require("./model/TotoRuntimeError");
+const path_1 = __importDefault(require("path"));
+const PubSubImplementationsFactory_1 = require("./evt/PubSubImplementationsFactory");
+const GCPPubSubImpl_1 = require("./evt/impl/gcp/GCPPubSubImpl");
+const SNSImpl_1 = require("./evt/impl/aws/SNSImpl");
+var PubSubImplementation_1 = require("./evt/PubSubImplementation");
+Object.defineProperty(exports, "APubSubImplementation", { enumerable: true, get: function () { return PubSubImplementation_1.APubSubImplementation; } });
+Object.defineProperty(exports, "APubSubRequestValidator", { enumerable: true, get: function () { return PubSubImplementation_1.APubSubRequestValidator; } });
+var PubSubImplementationsFactory_2 = require("./evt/PubSubImplementationsFactory");
+Object.defineProperty(exports, "PubSubImplementationsFactory", { enumerable: true, get: function () { return PubSubImplementationsFactory_2.PubSubImplementationsFactory; } });
 var TotoLogger_2 = require("./logger/TotoLogger");
 Object.defineProperty(exports, "Logger", { enumerable: true, get: function () { return TotoLogger_2.Logger; } });
 var AuthProviders_1 = require("./model/AuthProviders");
 Object.defineProperty(exports, "AUTH_PROVIDERS", { enumerable: true, get: function () { return AuthProviders_1.AUTH_PROVIDERS; } });
 var ExecutionContext_2 = require("./model/ExecutionContext");
 Object.defineProperty(exports, "ExecutionContext", { enumerable: true, get: function () { return ExecutionContext_2.ExecutionContext; } });
+var TotoControllerConfig_1 = require("./model/TotoControllerConfig");
+Object.defineProperty(exports, "TotoControllerConfig", { enumerable: true, get: function () { return TotoControllerConfig_1.TotoControllerConfig; } });
 var TotoRuntimeError_2 = require("./model/TotoRuntimeError");
 Object.defineProperty(exports, "TotoRuntimeError", { enumerable: true, get: function () { return TotoRuntimeError_2.TotoRuntimeError; } });
 var CorrelationId_1 = require("./util/CorrelationId");
 Object.defineProperty(exports, "correlationId", { enumerable: true, get: function () { return CorrelationId_1.correlationId; } });
+var CrossCloudSecret_1 = require("./util/CrossCloudSecret");
+Object.defineProperty(exports, "SecretsManager", { enumerable: true, get: function () { return CrossCloudSecret_1.SecretsManager; } });
 var ErrorUtil_1 = require("./util/ErrorUtil");
 Object.defineProperty(exports, "basicallyHandleError", { enumerable: true, get: function () { return ErrorUtil_1.basicallyHandleError; } });
+var GCPPubSubRequestValidator_1 = require("./evt/impl/gcp/GCPPubSubRequestValidator");
+Object.defineProperty(exports, "GCPPubSubRequestValidator", { enumerable: true, get: function () { return GCPPubSubRequestValidator_1.GCPPubSubRequestValidator; } });
+var SNSRequestValidator_1 = require("./evt/impl/aws/SNSRequestValidator");
+Object.defineProperty(exports, "SNSRequestValidator", { enumerable: true, get: function () { return SNSRequestValidator_1.SNSRequestValidator; } });
 var GoogleAuthCheck_1 = require("./validation/GoogleAuthCheck");
 Object.defineProperty(exports, "googleAuthCheck", { enumerable: true, get: function () { return GoogleAuthCheck_1.googleAuthCheck; } });
 var Validator_2 = require("./validation/Validator");
@@ -42,8 +59,6 @@ Object.defineProperty(exports, "ConfigMock", { enumerable: true, get: function (
 Object.defineProperty(exports, "LazyValidator", { enumerable: true, get: function () { return Validator_2.LazyValidator; } });
 Object.defineProperty(exports, "ValidationError", { enumerable: true, get: function () { return Validator_2.ValidationError; } });
 Object.defineProperty(exports, "Validator", { enumerable: true, get: function () { return Validator_2.Validator; } });
-var CrossCloudSecret_1 = require("./util/CrossCloudSecret");
-Object.defineProperty(exports, "SecretsManager", { enumerable: true, get: function () { return CrossCloudSecret_1.SecretsManager; } });
 class TotoControllerOptions {
     constructor() {
         this.debugMode = false;
@@ -65,18 +80,22 @@ class TotoAPIController {
      * - apiName              : (mandatory) - the name of the api (e.g. expenses)
      * - config               : (mandatory) - a TotoControllerConfig instance
      */
-    constructor(apiName, config, options = new TotoControllerOptions()) {
+    constructor(config, options = new TotoControllerOptions()) {
         var _a, _b;
         this.validator = new Validator_1.LazyValidator();
         this.app = (0, express_1.default)();
-        this.apiName = apiName;
-        this.logger = new TotoLogger_1.Logger(apiName);
+        this.apiName = config.getAPIName();
+        this.logger = new TotoLogger_1.Logger(this.apiName);
         this.config = config;
         this.options = {
             debugMode: (_a = options.debugMode) !== null && _a !== void 0 ? _a : false,
             basePath: options.basePath,
             port: (_b = options.port) !== null && _b !== void 0 ? _b : 8080
         };
+        // Registering default PubSub implementations
+        this.pubSubImplementationsFactory = new PubSubImplementationsFactory_1.PubSubImplementationsFactory(this.config, this.logger);
+        this.pubSubImplementationsFactory.registerImplementation(new GCPPubSubImpl_1.GCPPubSubImpl(this.config, this.logger));
+        this.pubSubImplementationsFactory.registerImplementation(new SNSImpl_1.SNSImpl(this.config, this.logger));
         this.config.logger = this.logger;
         // Log some configuration properties
         if (options.debugMode)
@@ -99,6 +118,14 @@ class TotoAPIController {
         this.staticContent = this.staticContent.bind(this);
         this.fileUploadPath = this.fileUploadPath.bind(this);
         this.path = this.path.bind(this);
+    }
+    /**
+     * Registers a new PubSub implementation to be used in the Toto API Controller.
+     *
+     * @param impl an implementation of APubSubImplementation
+     */
+    registerPubSubImplementation(impl) {
+        this.pubSubImplementationsFactory.registerImplementation(impl);
     }
     init() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -217,6 +244,62 @@ class TotoAPIController {
         console.log('[' + this.apiName + '] - Successfully added method ' + 'POST' + ' ' + correctedPath);
     }
     /**
+     * Registers a PubSub event handler for the specified resource.
+     * PubSub here is meant as the pattern not as the GCP offering. This should support any PubSub implementation (e.g. AWS SNS, Azure Service Bus, GCP PubSub, etc.)
+     *
+     * @param resource the name of the resource that the handler will listen to.
+     * Resources are the REST resource that this handler will manage events on.
+     * For example: resource "payment" will manage all events related to the payment resource. E.g.: new payment, deleted payment, updated payment, etc..
+     * IT IS NOT the name of the pubsub topic!
+     *
+     * @param handler the delegate that will handle the events for this resource
+     */
+    registerPubSubEventHandler(resource, handler, options) {
+        const path = `/events/${resource}`;
+        // If a basepath is defined, prepend it to the path
+        // Make sure that the basePath does not end with "/". If it does remove it. 
+        const correctedPath = (this.options.basePath && (!options || !options.ignoreBasePath)) ? this.options.basePath.replace(/\/$/, '').trim() + path : path;
+        const handleRequest = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            const cid = req.get('x-correlation-id') || (0, uuid_1.v4)();
+            try {
+                // Log the fact that a call has been received
+                this.logger.compute(cid, `Received event on resource ${resource}`);
+                // Find the right handler
+                const pubSubImpl = this.pubSubImplementationsFactory.getPubSubImplementation(req);
+                // Validating
+                const isAuthorized = yield pubSubImpl.getRequestValidator().isRequestAuthorized(req);
+                if (!isAuthorized)
+                    throw new TotoRuntimeError_1.TotoRuntimeError(401, "Unauthorized PubSub request: " + JSON.stringify(req));
+                // Build the context
+                const executionContext = new ExecutionContext_1.ExecutionContext(this.logger, this.apiName, this.config, cid);
+                // If the message is not destined to the handler (e.g. message that needs to be intercepted by a filter), then let the filter handle it
+                const filter = pubSubImpl.filter(req);
+                if (filter) {
+                    return yield filter.handle(req);
+                }
+                // Convert the HTTP Request into a message
+                const message = pubSubImpl.convertMessage(req);
+                // Execute the GET
+                const data = yield handler.onEvent(message, executionContext);
+                res.status(200).type('application/json').send(data);
+            }
+            catch (error) {
+                this.logger.compute(cid, `${error}`, "error");
+                if (error instanceof Validator_1.ValidationError || error instanceof TotoRuntimeError_1.TotoRuntimeError) {
+                    res.status(error.code).type("application/json").send(error);
+                }
+                else {
+                    console.log(error);
+                    res.status(500).type('application/json').send(error);
+                }
+            }
+        });
+        // Register the route with the custom middleware
+        this.app.post(correctedPath, parseTextAsJson, handleRequest);
+        // Log the added path
+        console.log('[' + this.apiName + '] - Successfully added event handler POST ' + correctedPath);
+    }
+    /**
      * Add a path to the app.
      * Requires:
      *  - method:   the HTTP method. Can be GET, POST, PUT, DELETE
@@ -281,3 +364,30 @@ class TotoAPIController {
     }
 }
 exports.TotoAPIController = TotoAPIController;
+// Middleware to handle text/plain content type from e.g. AWS SNS
+// AWS SNS sends SubscriptionConfirmation with text/plain but the body is actually JSON
+const parseTextAsJson = (req, res, next) => {
+    const contentType = req.get('content-type') || '';
+    // If it's text/plain (e.g. AWS SNS does that), parse it as JSON
+    if (contentType.includes('text/plain')) {
+        body_parser_1.default.text({ type: 'text/plain' })(req, res, (err) => {
+            if (err)
+                return next(err);
+            try {
+                // Parse the text body as JSON
+                if (typeof req.body === 'string') {
+                    req.body = JSON.parse(req.body);
+                }
+                next();
+            }
+            catch (parseError) {
+                console.log(`Failed to parse SNS text/plain body as JSON: ${parseError}`, 'error');
+                next(parseError);
+            }
+        });
+    }
+    else {
+        // For other content types, continue normally (bodyParser.json() already handled it)
+        next();
+    }
+};
