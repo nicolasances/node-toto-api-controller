@@ -19,6 +19,7 @@ import { APubSubImplementation } from './evt/PubSubImplementation';
 import { GCPPubSubImpl } from './evt/impl/gcp/GCPPubSubImpl';
 import { SNSImpl } from './evt/impl/aws/SNSImpl';
 
+export { newTotoServiceToken } from './auth/TotoToken';
 export { APubSubImplementation, APubSubRequestValidator } from './evt/PubSubImplementation'
 export { PubSubImplementationsFactory } from './evt/PubSubImplementationsFactory'
 export { TotoMessage } from './evt/TotoMessage'
@@ -320,7 +321,7 @@ export class TotoAPIController {
                 if (filter) {
 
                     return await filter.handle(req);
-                    
+
                 }
 
                 // Convert the HTTP Request into a message
