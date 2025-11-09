@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TotoAPIController = exports.TotoControllerOptions = exports.Validator = exports.ValidationError = exports.LazyValidator = exports.ConfigMock = exports.googleAuthCheck = exports.SNSRequestValidator = exports.GCPPubSubRequestValidator = exports.basicallyHandleError = exports.SecretsManager = exports.correlationId = exports.TotoRuntimeError = exports.TotoControllerConfig = exports.ExecutionContext = exports.AUTH_PROVIDERS = exports.Logger = exports.PubSubImplementationsFactory = exports.APubSubRequestValidator = exports.APubSubImplementation = void 0;
+exports.TotoAPIController = exports.TotoControllerOptions = exports.Validator = exports.ValidationError = exports.LazyValidator = exports.ConfigMock = exports.googleAuthCheck = exports.SNSRequestValidator = exports.GCPPubSubRequestValidator = exports.basicallyHandleError = exports.SecretsManager = exports.correlationId = exports.TotoRuntimeError = exports.TotoControllerConfig = exports.ExecutionContext = exports.AUTH_PROVIDERS = exports.Logger = exports.PubSubImplementationsFactory = exports.APubSubRequestValidator = exports.APubSubImplementation = exports.newTotoServiceToken = void 0;
 const body_parser_1 = __importDefault(require("body-parser"));
 const connect_busboy_1 = __importDefault(require("connect-busboy"));
 const fs_extra_1 = __importDefault(require("fs-extra"));
@@ -27,6 +27,8 @@ const path_1 = __importDefault(require("path"));
 const PubSubImplementationsFactory_1 = require("./evt/PubSubImplementationsFactory");
 const GCPPubSubImpl_1 = require("./evt/impl/gcp/GCPPubSubImpl");
 const SNSImpl_1 = require("./evt/impl/aws/SNSImpl");
+var TotoToken_1 = require("./auth/TotoToken");
+Object.defineProperty(exports, "newTotoServiceToken", { enumerable: true, get: function () { return TotoToken_1.newTotoServiceToken; } });
 var PubSubImplementation_1 = require("./evt/PubSubImplementation");
 Object.defineProperty(exports, "APubSubImplementation", { enumerable: true, get: function () { return PubSubImplementation_1.APubSubImplementation; } });
 Object.defineProperty(exports, "APubSubRequestValidator", { enumerable: true, get: function () { return PubSubImplementation_1.APubSubRequestValidator; } });

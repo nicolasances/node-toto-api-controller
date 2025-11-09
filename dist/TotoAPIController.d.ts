@@ -7,6 +7,7 @@ import { TotoPathOptions } from './model/TotoPathOptions';
 import { ITotoPubSubEventHandler } from './evt/TotoPubSubEventHandler';
 import { PubSubImplementationsFactory } from './evt/PubSubImplementationsFactory';
 import { APubSubImplementation } from './evt/PubSubImplementation';
+export { newTotoServiceToken } from './auth/TotoToken';
 export { APubSubImplementation, APubSubRequestValidator } from './evt/PubSubImplementation';
 export { PubSubImplementationsFactory } from './evt/PubSubImplementationsFactory';
 export { TotoMessage } from './evt/TotoMessage';
