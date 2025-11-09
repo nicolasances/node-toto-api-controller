@@ -2,7 +2,8 @@
 The Toto API Controller is a façade to expressJS to make it easier building an API.
 
 The complete documentation of each version is here: 
- * [Version 13.0.0 (latest)](docs/13.0.0.md) 
+ * [Version 14.0.0 (latest)](docs/14.0.0.md) 
+ * [Version 13.0.0](docs/13.0.0.md) 
  * [Version 11.0.0](docs/11.0.0.md)
  * [Version 10.0.0](docs/10.0.0.md)
  * [Version 9.5.0](docs/9.5.0.md)
@@ -22,6 +23,26 @@ To publish this package on NPM, first build it and the publish it... it's that e
 npm run build
 npm publish
 ```
+
+## Version 14.0.0
+
+1. **Event Handling**: event handlers are now registered separately than a normal REST endpoint. <br>
+    Support for: 
+    * AWS SNS
+    * GCP PubSub
+
+2. **Toto Token**: it is now possible to generate a JWT Token for a backend service, instead of relying on propagating tokens. <br>
+    This choice has been made to support scenarios where a service is called without a token (e.g. SNS HTTPS push endpoints).<br>
+    It is also more correct, for event handlers that need to call other Toto Services to use their own token (identity) rather than propagating something like a PubSub Service Account.
+
+3. **Toto Controller Config is now an Abstract Class**. <br>
+    Now you will need to `extend TotoControllerConfig` instead of using `implement` as it is no longer an interface but an abstract class.<br>
+    That was done to avoid boilerplate code to be rewritten all the time in every implementation of a Toto Microservice.
+
+## Version 13.2.0
+
+1. **Option to start the server on other ports**. <br>
+It is now possible to change the default port of `8080` to anything else. 
 
 ## Version 13.0.0
 

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.basicallyHandleError = void 0;
+exports.basicallyHandleError = basicallyHandleError;
 const TotoRuntimeError_1 = require("../model/TotoRuntimeError");
 const Validator_1 = require("../validation/Validator");
 function basicallyHandleError(error, logger, cid) {
@@ -11,4 +11,3 @@ function basicallyHandleError(error, logger, cid) {
     console.log(error);
     throw error;
 }
-exports.basicallyHandleError = basicallyHandleError;

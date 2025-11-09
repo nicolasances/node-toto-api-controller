@@ -34,8 +34,7 @@ export declare class ValidationError extends Error {
 export declare class LazyValidator extends Validator {
     constructor();
 }
-export declare class ConfigMock implements TotoControllerConfig {
-    logger: Logger;
+export declare class ConfigMock extends TotoControllerConfig {
     constructor();
     getSigningKey(): string;
     load(): Promise<any>;

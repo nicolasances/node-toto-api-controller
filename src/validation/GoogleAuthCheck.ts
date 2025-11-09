@@ -1,20 +1,12 @@
 import { Logger } from "../logger/TotoLogger";
 import { AUTH_PROVIDERS } from "../model/AuthProviders";
+import { decodeJWT, extractTokenFromAuthHeader } from "../util/TokenUtil";
 
 const { OAuth2Client } = require('google-auth-library');
 
-const decodeJWT = (token: string | null) => {
-    if (token !== null || token !== undefined) {
-        const base64String = token!.split(`.`)[1];
-        const decodedValue = JSON.parse(Buffer.from(base64String, `base64`).toString(`ascii`));
-        return decodedValue;
-    }
-    return null;
-}
-
 export async function googleAuthCheck(cid: string, authorizationHeader: string | string[] | undefined, expectedAudience: string, logger: Logger, debugMode: boolean = false) {
 
-    const token: string | null = authorizationHeader ? String(authorizationHeader).substring('Bearer'.length + 1) : null;
+    const token = extractTokenFromAuthHeader(authorizationHeader as string);
 
     const client = new OAuth2Client(expectedAudience);
 

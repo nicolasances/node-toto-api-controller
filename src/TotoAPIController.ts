@@ -1,8 +1,8 @@
 import bodyParser from 'body-parser'
 import busboy from 'connect-busboy'
-import path from 'path'
 import fs from 'fs-extra';
 import express, { Express, Request, Response } from 'express'
+import { v4 as uuidv4 } from 'uuid';
 
 import { Logger } from './logger/TotoLogger'
 import { TotoControllerConfig } from './model/TotoControllerConfig'
@@ -12,25 +12,39 @@ import { ExecutionContext } from './model/ExecutionContext';
 import { SmokeDelegate } from './dlg/SmokeDelegate';
 import { TotoRuntimeError } from './model/TotoRuntimeError';
 import { TotoPathOptions } from './model/TotoPathOptions';
+import path from 'path';
+import { ITotoPubSubEventHandler } from './evt/TotoPubSubEventHandler';
+import { PubSubImplementationsFactory } from './evt/PubSubImplementationsFactory';
+import { APubSubImplementation } from './evt/PubSubImplementation';
+import { GCPPubSubImpl } from './evt/impl/gcp/GCPPubSubImpl';
+import { SNSImpl } from './evt/impl/aws/SNSImpl';
 
+export { newTotoServiceToken } from './auth/TotoToken';
+export { APubSubImplementation, APubSubRequestValidator } from './evt/PubSubImplementation'
+export { PubSubImplementationsFactory } from './evt/PubSubImplementationsFactory'
+export { TotoMessage } from './evt/TotoMessage'
+export { ITotoPubSubEventHandler } from './evt/TotoPubSubEventHandler'
 export { Logger } from './logger/TotoLogger'
 export { AUTH_PROVIDERS } from './model/AuthProviders'
 export { ExecutionContext } from './model/ExecutionContext'
-export { TotoControllerConfig } from './model/TotoControllerConfig'
+export { TotoControllerConfig, ConfigurationData } from './model/TotoControllerConfig'
 export { FakeRequest, TotoDelegate } from './model/TotoDelegate'
 export { TotoPathOptions } from './model/TotoPathOptions'
 export { TotoRuntimeError } from './model/TotoRuntimeError'
 export { UserContext } from './model/UserContext'
 export { ValidatorProps } from './model/ValidatorProps'
 export { correlationId } from './util/CorrelationId'
+export { SecretsManager } from './util/CrossCloudSecret'
 export { basicallyHandleError } from './util/ErrorUtil'
+export { GCPPubSubRequestValidator } from './evt/impl/gcp/GCPPubSubRequestValidator';
+export { SNSRequestValidator } from './evt/impl/aws/SNSRequestValidator';
 export { googleAuthCheck } from './validation/GoogleAuthCheck'
 export { ConfigMock, LazyValidator, ValidationError, Validator } from './validation/Validator'
-export { SecretsManager } from './util/CrossCloudSecret'
 
 export class TotoControllerOptions {
     debugMode?: boolean = false
     basePath?: string = undefined   // Use to prepend a base path to all API paths, e.g. '/api/v1' or '/expenses/v1'
+    port?: number                   // Use to define the port on which the Express app will listen. Default is 8080
 }
 
 /**
@@ -48,6 +62,7 @@ export class TotoAPIController {
     validator: Validator = new LazyValidator();
     config: TotoControllerConfig;
     options: TotoControllerOptions;
+    pubSubImplementationsFactory: PubSubImplementationsFactory;
 
     /**
      * The constructor requires the express app
@@ -55,13 +70,22 @@ export class TotoAPIController {
      * - apiName              : (mandatory) - the name of the api (e.g. expenses)
      * - config               : (mandatory) - a TotoControllerConfig instance
      */
-    constructor(apiName: string, config: TotoControllerConfig, options: TotoControllerOptions = new TotoControllerOptions()) {
+    constructor(config: TotoControllerConfig, options: TotoControllerOptions = new TotoControllerOptions()) {
 
         this.app = express();
-        this.apiName = apiName;
-        this.logger = new Logger(apiName)
+        this.apiName = config.getAPIName();
+        this.logger = new Logger(this.apiName)
         this.config = config;
-        this.options = options;
+        this.options = {
+            debugMode: options.debugMode ?? false,
+            basePath: options.basePath,
+            port: options.port ?? 8080
+        };
+
+        // Registering default PubSub implementations
+        this.pubSubImplementationsFactory = new PubSubImplementationsFactory(this.config, this.logger);
+        this.pubSubImplementationsFactory.registerImplementation(new GCPPubSubImpl(this.config, this.logger));
+        this.pubSubImplementationsFactory.registerImplementation(new SNSImpl(this.config, this.logger));
 
         this.config.logger = this.logger;
 
@@ -89,6 +113,15 @@ export class TotoAPIController {
         this.staticContent = this.staticContent.bind(this);
         this.fileUploadPath = this.fileUploadPath.bind(this);
         this.path = this.path.bind(this);
+    }
+
+    /**
+     * Registers a new PubSub implementation to be used in the Toto API Controller.
+     * 
+     * @param impl an implementation of APubSubImplementation
+     */
+    registerPubSubImplementation(impl: APubSubImplementation) {
+        this.pubSubImplementationsFactory.registerImplementation(impl);
     }
 
     async init() {
@@ -243,6 +276,86 @@ export class TotoAPIController {
     }
 
     /**
+     * Registers a PubSub event handler for the specified resource.
+     * PubSub here is meant as the pattern not as the GCP offering. This should support any PubSub implementation (e.g. AWS SNS, Azure Service Bus, GCP PubSub, etc.)
+     * 
+     * @param resource the name of the resource that the handler will listen to. 
+     * Resources are the REST resource that this handler will manage events on. 
+     * For example: resource "payment" will manage all events related to the payment resource. E.g.: new payment, deleted payment, updated payment, etc.. 
+     * IT IS NOT the name of the pubsub topic! 
+     * 
+     * @param handler the delegate that will handle the events for this resource
+     */
+    registerPubSubEventHandler(resource: string, handler: ITotoPubSubEventHandler, options?: TotoPathOptions) {
+
+        const path = `/events/${resource}`;
+
+        // If a basepath is defined, prepend it to the path
+        // Make sure that the basePath does not end with "/". If it does remove it. 
+        const correctedPath = (this.options.basePath && (!options || !options.ignoreBasePath)) ? this.options.basePath.replace(/\/$/, '').trim() + path : path;
+
+
+        const handleRequest = async (req: Request, res: Response) => {
+
+            const cid = req.get('x-correlation-id') || uuidv4();
+
+            try {
+
+                // Log the fact that a call has been received
+                this.logger.compute(cid, `Received event on resource ${resource}`);
+
+                // Find the right handler
+                const pubSubImpl = this.pubSubImplementationsFactory.getPubSubImplementation(req);
+
+                // Validating
+                const isAuthorized = await pubSubImpl.getRequestValidator().isRequestAuthorized(req);
+
+                if (!isAuthorized) throw new TotoRuntimeError(401, "Unauthorized PubSub request: " + JSON.stringify(req));
+
+                // Build the context
+                const executionContext = new ExecutionContext(this.logger, this.apiName, this.config, cid)
+
+                // If the message is not destined to the handler (e.g. message that needs to be intercepted by a filter), then let the filter handle it
+                const filter = pubSubImpl.filter(req);
+
+                if (filter) {
+
+                    return await filter.handle(req);
+
+                }
+
+                // Convert the HTTP Request into a message
+                const message = pubSubImpl.convertMessage(req);
+
+                // Execute the GET
+                const data = await handler.onEvent(message, executionContext);
+
+                res.status(200).type('application/json').send(data);
+
+
+            } catch (error) {
+
+                this.logger.compute(cid, `${error}`, "error")
+
+                if (error instanceof ValidationError || error instanceof TotoRuntimeError) {
+                    res.status(error.code).type("application/json").send(error)
+                }
+                else {
+                    console.log(error);
+                    res.status(500).type('application/json').send(error);
+                }
+            }
+        }
+
+        // Register the route with the custom middleware
+        this.app.post(correctedPath, parseTextAsJson, handleRequest);
+
+        // Log the added path
+        console.log('[' + this.apiName + '] - Successfully added event handler POST ' + correctedPath);
+
+    }
+
+    /**
      * Add a path to the app.
      * Requires:
      *  - method:   the HTTP method. Can be GET, POST, PUT, DELETE
@@ -314,9 +427,42 @@ export class TotoAPIController {
             return;
         }
 
-        this.app.listen(8080, () => {
-            console.info('[' + this.apiName + '] - Microservice up and running');
+        this.app.listen(this.options.port, () => {
+            this.logger.compute("", `[${this.apiName}] - Microservice listening on port ${this.options.port}`, 'info');
         });
 
     }
 }
+
+
+// Middleware to handle text/plain content type from e.g. AWS SNS
+// AWS SNS sends SubscriptionConfirmation with text/plain but the body is actually JSON
+const parseTextAsJson = (req: Request, res: Response, next: any) => {
+
+    const contentType = req.get('content-type') || '';
+
+    // If it's text/plain (e.g. AWS SNS does that), parse it as JSON
+    if (contentType.includes('text/plain')) {
+
+        bodyParser.text({ type: 'text/plain' })(req, res, (err) => {
+
+            if (err) return next(err);
+
+            try {
+                // Parse the text body as JSON
+                if (typeof req.body === 'string') {
+                    req.body = JSON.parse(req.body);
+                }
+                next();
+            } catch (parseError) {
+                console.log(`Failed to parse SNS text/plain body as JSON: ${parseError}`, 'error');
+                next(parseError);
+            }
+        });
+
+    }
+    else {
+        // For other content types, continue normally (bodyParser.json() already handled it)
+        next();
+    }
+};
