@@ -1,5 +1,6 @@
+import { RegistryCache } from "../integration/RegistryCache";
 import { Logger } from "../logger/TotoLogger";
-import { SecretsManager } from "../TotoAPIController";
+import { SecretsManager, TotoRuntimeError } from "../TotoAPIController";
 import { ValidatorProps } from "./ValidatorProps";
 
 export abstract class TotoControllerConfig {
@@ -14,6 +15,7 @@ export abstract class TotoControllerConfig {
     protected jwtSigningKey: string | undefined;
     protected expectedAudience: string | undefined;
     options: TotoControllerConfigOptions | undefined;
+    totoRegistryEndpoint: string | undefined;
 
     constructor(configuration: ConfigurationData, options?: TotoControllerConfigOptions) {
 
@@ -45,6 +47,9 @@ export abstract class TotoControllerConfig {
         }));
         promises.push(secretsManager.getSecret('toto-expected-audience').then((value) => {
             this.expectedAudience = value;
+        }));
+        promises.push(secretsManager.getSecret('toto-registry-endpoint').then((value) => {
+            this.totoRegistryEndpoint = value;
         }));
 
         await Promise.all(promises);
@@ -78,6 +83,10 @@ export abstract class TotoControllerConfig {
      */
     getAPIName(): string {
         return this.configuration.apiName;
+    }
+
+    getTotoRegistryEndpoint(): string {
+        return String(this.totoRegistryEndpoint);
     }
 
 }

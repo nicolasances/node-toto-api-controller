@@ -1,6 +1,6 @@
 {
   "name": "toto-api-controller",
-  "version": "14.0.3",
+  "version": "14.1.0",
   "description": "",
   "main": "./dist/TotoAPIController.js",
   "types": "./dist/TotoAPIController.d.ts",
@@ -36,6 +36,7 @@
     "@types/moment-timezone": "^0.5.30",
     "@types/mongodb": "^4.0.7",
     "@types/node": "^16.11.7",
+    "@types/request": "^2.48.13",
     "@types/uuid": "^10.0.0",
     "chai": "^4.3.0",
     "mocha": "^10.0.0",
