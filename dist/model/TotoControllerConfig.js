@@ -37,6 +37,9 @@ class TotoControllerConfig {
             promises.push(secretsManager.getSecret('toto-expected-audience').then((value) => {
                 this.expectedAudience = value;
             }));
+            promises.push(secretsManager.getSecret('toto-registry-endpoint').then((value) => {
+                this.totoRegistryEndpoint = value;
+            }));
             yield Promise.all(promises);
         });
     }
@@ -60,6 +63,9 @@ class TotoControllerConfig {
      */
     getAPIName() {
         return this.configuration.apiName;
+    }
+    getTotoRegistryEndpoint() {
+        return String(this.totoRegistryEndpoint);
     }
 }
 exports.TotoControllerConfig = TotoControllerConfig;
