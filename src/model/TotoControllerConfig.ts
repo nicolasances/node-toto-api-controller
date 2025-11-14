@@ -13,14 +13,16 @@ export abstract class TotoControllerConfig {
     protected mongoHost: string | undefined;
     protected jwtSigningKey: string | undefined;
     protected expectedAudience: string | undefined;
+    options: TotoControllerConfigOptions | undefined;
 
-    constructor(configuration: ConfigurationData) {
+    constructor(configuration: ConfigurationData, options?: TotoControllerConfigOptions) {
 
-        this.hyperscaler = process.env.HYPERSCALER == 'aws' ? 'aws' : (process.env.HYPERSCALER == 'gcp' ? 'gcp' : 'local');
+        this.hyperscaler = process.env.HYPERSCALER as "aws" | "gcp" | "local" ?? options?.defaultHyperscaler ?? "gcp";
 
         this.env = (this.hyperscaler == 'aws' || this.hyperscaler == 'local') ? (process.env.ENVIRONMENT ?? 'dev') : process.env.GCP_PID ?? 'dev';
 
         this.configuration = configuration;
+        this.options = options;
 
     }
 
@@ -31,7 +33,9 @@ export abstract class TotoControllerConfig {
 
         let promises = [];
 
-        const secretsManager = new SecretsManager(this.hyperscaler == 'local' ? 'gcp' : this.hyperscaler, this.env, this.logger!);  // Use GCP Secrets Manager when local
+        const secretsManagerLocation = this.hyperscaler == 'local' ? this.options?.defaultSecretsManagerLocation ?? "gcp" : this.hyperscaler;
+
+        const secretsManager = new SecretsManager(secretsManagerLocation, this.env, this.logger!);  // Use GCP Secrets Manager when local
 
         promises.push(secretsManager.getSecret('mongo-host').then((value) => {
             this.mongoHost = value;
@@ -80,4 +84,9 @@ export abstract class TotoControllerConfig {
 
 export interface ConfigurationData {
     apiName: string;
+}
+
+export class TotoControllerConfigOptions {
+    defaultHyperscaler: "aws" | "gcp" = "gcp";
+    defaultSecretsManagerLocation: "aws" | "gcp" = "gcp";
 }
