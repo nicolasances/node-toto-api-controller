@@ -18,9 +18,7 @@ export abstract class TotoControllerConfig {
 
         this.hyperscaler = process.env.HYPERSCALER == 'aws' ? 'aws' : (process.env.HYPERSCALER == 'gcp' ? 'gcp' : 'local');
 
-        let env = process.env.HYPERSCALER == 'aws' ? (process.env.ENVIRONMENT ?? 'dev') : process.env.GCP_PID;
-        if (!env) env = 'dev';
-        this.env = env;
+        this.env = (this.hyperscaler == 'aws' || this.hyperscaler == 'local') ? (process.env.ENVIRONMENT ?? 'dev') : process.env.GCP_PID ?? 'dev';
 
         this.configuration = configuration;
 
