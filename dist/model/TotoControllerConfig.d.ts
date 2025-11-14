@@ -8,7 +8,9 @@ export declare abstract class TotoControllerConfig {
     protected mongoHost: string | undefined;
     protected jwtSigningKey: string | undefined;
     protected expectedAudience: string | undefined;
-    constructor(configuration: ConfigurationData);
+    options: TotoControllerConfigOptions | undefined;
+    totoRegistryEndpoint: string | undefined;
+    constructor(configuration: ConfigurationData, options?: TotoControllerConfigOptions);
     /**
      * Loads the configurations and returns a Promise when done
      */
@@ -32,7 +34,12 @@ export declare abstract class TotoControllerConfig {
      * Returns the name of the API (service, microservice) managed by this controller.
      */
     getAPIName(): string;
+    getTotoRegistryEndpoint(): string;
 }
 export interface ConfigurationData {
     apiName: string;
+}
+export declare class TotoControllerConfigOptions {
+    defaultHyperscaler: "aws" | "gcp";
+    defaultSecretsManagerLocation: "aws" | "gcp";
 }

@@ -1,5 +1,6 @@
+import { RegistryCache } from "../integration/RegistryCache";
 import { Logger } from "../logger/TotoLogger";
-import { SecretsManager } from "../TotoAPIController";
+import { SecretsManager, TotoRuntimeError } from "../TotoAPIController";
 import { ValidatorProps } from "./ValidatorProps";
 
 export abstract class TotoControllerConfig {
@@ -13,16 +14,17 @@ export abstract class TotoControllerConfig {
     protected mongoHost: string | undefined;
     protected jwtSigningKey: string | undefined;
     protected expectedAudience: string | undefined;
+    options: TotoControllerConfigOptions | undefined;
+    totoRegistryEndpoint: string | undefined;
 
-    constructor(configuration: ConfigurationData) {
+    constructor(configuration: ConfigurationData, options?: TotoControllerConfigOptions) {
 
-        this.hyperscaler = process.env.HYPERSCALER == 'aws' ? 'aws' : (process.env.HYPERSCALER == 'gcp' ? 'gcp' : 'local');
+        this.hyperscaler = process.env.HYPERSCALER as "aws" | "gcp" | "local" ?? options?.defaultHyperscaler ?? "gcp";
 
-        let env = process.env.HYPERSCALER == 'aws' ? (process.env.ENVIRONMENT ?? 'dev') : process.env.GCP_PID;
-        if (!env) env = 'dev';
-        this.env = env;
+        this.env = (this.hyperscaler == 'aws' || this.hyperscaler == 'local') ? (process.env.ENVIRONMENT ?? 'dev') : process.env.GCP_PID ?? 'dev';
 
         this.configuration = configuration;
+        this.options = options;
 
     }
 
@@ -33,7 +35,9 @@ export abstract class TotoControllerConfig {
 
         let promises = [];
 
-        const secretsManager = new SecretsManager(this.hyperscaler == 'local' ? 'gcp' : this.hyperscaler, this.env, this.logger!);  // Use GCP Secrets Manager when local
+        const secretsManagerLocation = this.hyperscaler == 'local' ? this.options?.defaultSecretsManagerLocation ?? "gcp" : this.hyperscaler;
+
+        const secretsManager = new SecretsManager(secretsManagerLocation, this.env, this.logger!);  // Use GCP Secrets Manager when local
 
         promises.push(secretsManager.getSecret('mongo-host').then((value) => {
             this.mongoHost = value;
@@ -43,6 +47,9 @@ export abstract class TotoControllerConfig {
         }));
         promises.push(secretsManager.getSecret('toto-expected-audience').then((value) => {
             this.expectedAudience = value;
+        }));
+        promises.push(secretsManager.getSecret('toto-registry-endpoint').then((value) => {
+            this.totoRegistryEndpoint = value;
         }));
 
         await Promise.all(promises);
@@ -78,8 +85,17 @@ export abstract class TotoControllerConfig {
         return this.configuration.apiName;
     }
 
+    getTotoRegistryEndpoint(): string {
+        return String(this.totoRegistryEndpoint);
+    }
+
 }
 
 export interface ConfigurationData {
     apiName: string;
+}
+
+export class TotoControllerConfigOptions {
+    defaultHyperscaler: "aws" | "gcp" = "gcp";
+    defaultSecretsManagerLocation: "aws" | "gcp" = "gcp";
 }

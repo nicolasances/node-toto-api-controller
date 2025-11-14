@@ -9,25 +9,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TotoControllerConfig = void 0;
+exports.TotoControllerConfigOptions = exports.TotoControllerConfig = void 0;
 const TotoAPIController_1 = require("../TotoAPIController");
 class TotoControllerConfig {
-    constructor(configuration) {
-        var _a;
-        this.hyperscaler = process.env.HYPERSCALER == 'aws' ? 'aws' : (process.env.HYPERSCALER == 'gcp' ? 'gcp' : 'local');
-        let env = process.env.HYPERSCALER == 'aws' ? ((_a = process.env.ENVIRONMENT) !== null && _a !== void 0 ? _a : 'dev') : process.env.GCP_PID;
-        if (!env)
-            env = 'dev';
-        this.env = env;
+    constructor(configuration, options) {
+        var _a, _b, _c, _d;
+        this.hyperscaler = (_b = (_a = process.env.HYPERSCALER) !== null && _a !== void 0 ? _a : options === null || options === void 0 ? void 0 : options.defaultHyperscaler) !== null && _b !== void 0 ? _b : "gcp";
+        this.env = (this.hyperscaler == 'aws' || this.hyperscaler == 'local') ? ((_c = process.env.ENVIRONMENT) !== null && _c !== void 0 ? _c : 'dev') : (_d = process.env.GCP_PID) !== null && _d !== void 0 ? _d : 'dev';
         this.configuration = configuration;
+        this.options = options;
     }
     /**
      * Loads the configurations and returns a Promise when done
      */
     load() {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a, _b;
             let promises = [];
-            const secretsManager = new TotoAPIController_1.SecretsManager(this.hyperscaler == 'local' ? 'gcp' : this.hyperscaler, this.env, this.logger); // Use GCP Secrets Manager when local
+            const secretsManagerLocation = this.hyperscaler == 'local' ? (_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.defaultSecretsManagerLocation) !== null && _b !== void 0 ? _b : "gcp" : this.hyperscaler;
+            const secretsManager = new TotoAPIController_1.SecretsManager(secretsManagerLocation, this.env, this.logger); // Use GCP Secrets Manager when local
             promises.push(secretsManager.getSecret('mongo-host').then((value) => {
                 this.mongoHost = value;
             }));
@@ -36,6 +36,9 @@ class TotoControllerConfig {
             }));
             promises.push(secretsManager.getSecret('toto-expected-audience').then((value) => {
                 this.expectedAudience = value;
+            }));
+            promises.push(secretsManager.getSecret('toto-registry-endpoint').then((value) => {
+                this.totoRegistryEndpoint = value;
             }));
             yield Promise.all(promises);
         });
@@ -61,5 +64,15 @@ class TotoControllerConfig {
     getAPIName() {
         return this.configuration.apiName;
     }
+    getTotoRegistryEndpoint() {
+        return String(this.totoRegistryEndpoint);
+    }
 }
 exports.TotoControllerConfig = TotoControllerConfig;
+class TotoControllerConfigOptions {
+    constructor() {
+        this.defaultHyperscaler = "gcp";
+        this.defaultSecretsManagerLocation = "gcp";
+    }
+}
+exports.TotoControllerConfigOptions = TotoControllerConfigOptions;

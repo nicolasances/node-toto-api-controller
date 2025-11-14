@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TotoAPIController = exports.TotoControllerOptions = exports.Validator = exports.ValidationError = exports.LazyValidator = exports.ConfigMock = exports.googleAuthCheck = exports.SNSRequestValidator = exports.GCPPubSubRequestValidator = exports.basicallyHandleError = exports.SecretsManager = exports.correlationId = exports.TotoRuntimeError = exports.TotoControllerConfig = exports.ExecutionContext = exports.AUTH_PROVIDERS = exports.Logger = exports.PubSubImplementationsFactory = exports.APubSubRequestValidator = exports.APubSubImplementation = exports.newTotoServiceToken = void 0;
+exports.TotoAPIController = exports.TotoControllerOptions = exports.TotoRegistryAPI = exports.RegistryCache = exports.Validator = exports.ValidationError = exports.LazyValidator = exports.ConfigMock = exports.googleAuthCheck = exports.SNSRequestValidator = exports.GCPPubSubRequestValidator = exports.basicallyHandleError = exports.SecretsManager = exports.correlationId = exports.TotoRuntimeError = exports.TotoControllerConfig = exports.ExecutionContext = exports.AUTH_PROVIDERS = exports.Logger = exports.PubSubImplementationsFactory = exports.APubSubRequestValidator = exports.APubSubImplementation = exports.newTotoServiceToken = void 0;
 const body_parser_1 = __importDefault(require("body-parser"));
 const connect_busboy_1 = __importDefault(require("connect-busboy"));
 const fs_extra_1 = __importDefault(require("fs-extra"));
@@ -27,6 +27,8 @@ const path_1 = __importDefault(require("path"));
 const PubSubImplementationsFactory_1 = require("./evt/PubSubImplementationsFactory");
 const GCPPubSubImpl_1 = require("./evt/impl/gcp/GCPPubSubImpl");
 const SNSImpl_1 = require("./evt/impl/aws/SNSImpl");
+const TotoRegistryAPI_1 = require("./integration/TotoRegistryAPI");
+const RegistryCache_1 = require("./integration/RegistryCache");
 var TotoToken_1 = require("./auth/TotoToken");
 Object.defineProperty(exports, "newTotoServiceToken", { enumerable: true, get: function () { return TotoToken_1.newTotoServiceToken; } });
 var PubSubImplementation_1 = require("./evt/PubSubImplementation");
@@ -61,6 +63,10 @@ Object.defineProperty(exports, "ConfigMock", { enumerable: true, get: function (
 Object.defineProperty(exports, "LazyValidator", { enumerable: true, get: function () { return Validator_2.LazyValidator; } });
 Object.defineProperty(exports, "ValidationError", { enumerable: true, get: function () { return Validator_2.ValidationError; } });
 Object.defineProperty(exports, "Validator", { enumerable: true, get: function () { return Validator_2.Validator; } });
+var RegistryCache_2 = require("./integration/RegistryCache");
+Object.defineProperty(exports, "RegistryCache", { enumerable: true, get: function () { return RegistryCache_2.RegistryCache; } });
+var TotoRegistryAPI_2 = require("./integration/TotoRegistryAPI");
+Object.defineProperty(exports, "TotoRegistryAPI", { enumerable: true, get: function () { return TotoRegistryAPI_2.TotoRegistryAPI; } });
 class TotoControllerOptions {
     constructor() {
         this.debugMode = false;
@@ -101,7 +107,7 @@ class TotoAPIController {
         this.config.logger = this.logger;
         // Log some configuration properties
         if (options.debugMode)
-            this.logger.compute("", `[TotoAPIController Debug] - Config Properties: ${JSON.stringify(config.getProps())}`);
+            this.logger.compute("INIT", `[TotoAPIController Debug] - Config Properties: ${JSON.stringify(config.getProps())}`);
         // Initialize the basic Express functionalities
         this.app.use(function (req, res, next) {
             res.header("Access-Control-Allow-Origin", "*");
@@ -131,8 +137,14 @@ class TotoAPIController {
     }
     init() {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             yield this.config.load();
             this.validator = new Validator_1.Validator(this.config, this.logger, this.options.debugMode);
+            // Register this API with Toto API Registry
+            const registrationResponse = yield new TotoRegistryAPI_1.TotoRegistryAPI(this.config).registerAPI({ apiName: this.apiName, basePath: (_a = this.options.basePath) === null || _a === void 0 ? void 0 : _a.replace("/", ""), hyperscaler: this.config.hyperscaler });
+            this.logger.compute("INIT", `API ${this.apiName} successfully registered with Toto API Registry: ${JSON.stringify(registrationResponse)}`, 'info');
+            // Download all Toto API Endpoints and cache them 
+            RegistryCache_1.RegistryCache.getInstance(this.config).refresh();
         });
     }
     /**
@@ -243,7 +255,7 @@ class TotoAPIController {
             });
         }));
         // Log the added path
-        console.log('[' + this.apiName + '] - Successfully added method ' + 'POST' + ' ' + correctedPath);
+        this.logger.compute("INIT", '[' + this.apiName + '] - Successfully added method ' + 'POST' + ' ' + correctedPath);
     }
     /**
      * Registers a PubSub event handler for the specified resource.
@@ -349,7 +361,7 @@ class TotoAPIController {
         else
             this.app.get(correctedPath, handleRequest);
         // Log the added path
-        console.log('[' + this.apiName + '] - Successfully added method ' + method + ' ' + correctedPath);
+        this.logger.compute("INIT", '[' + this.apiName + '] - Successfully added method ' + method + ' ' + correctedPath);
     }
     /**
      * Starts the ExpressJS app by listening on the standard port defined for Toto microservices
@@ -361,7 +373,7 @@ class TotoAPIController {
             return;
         }
         this.app.listen(this.options.port, () => {
-            this.logger.compute("", `[${this.apiName}] - Microservice listening on port ${this.options.port}`, 'info');
+            this.logger.compute("INIT", `[${this.apiName}] - Microservice listening on port ${this.options.port}`, 'info');
         });
     }
 }

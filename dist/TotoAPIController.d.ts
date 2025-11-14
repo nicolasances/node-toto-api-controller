@@ -8,7 +8,7 @@ import { ITotoPubSubEventHandler } from './evt/TotoPubSubEventHandler';
 import { PubSubImplementationsFactory } from './evt/PubSubImplementationsFactory';
 import { APubSubImplementation } from './evt/PubSubImplementation';
 export { newTotoServiceToken } from './auth/TotoToken';
-export { APubSubImplementation, APubSubRequestValidator } from './evt/PubSubImplementation';
+export { APubSubImplementation, APubSubRequestValidator, APubSubRequestFilter } from './evt/PubSubImplementation';
 export { PubSubImplementationsFactory } from './evt/PubSubImplementationsFactory';
 export { TotoMessage } from './evt/TotoMessage';
 export { ITotoPubSubEventHandler } from './evt/TotoPubSubEventHandler';
@@ -28,6 +28,8 @@ export { GCPPubSubRequestValidator } from './evt/impl/gcp/GCPPubSubRequestValida
 export { SNSRequestValidator } from './evt/impl/aws/SNSRequestValidator';
 export { googleAuthCheck } from './validation/GoogleAuthCheck';
 export { ConfigMock, LazyValidator, ValidationError, Validator } from './validation/Validator';
+export { RegistryCache } from './integration/RegistryCache';
+export { TotoRegistryAPI } from './integration/TotoRegistryAPI';
 export declare class TotoControllerOptions {
     debugMode?: boolean;
     basePath?: string;
