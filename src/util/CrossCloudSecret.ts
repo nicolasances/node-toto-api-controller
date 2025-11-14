@@ -23,11 +23,16 @@ export class SecretsManager {
 
     getSecret(secretName: string): Promise<string> {
 
-        if (this.provider == "aws") {
-            return this.getSecretFromAWS(this.environment, secretName);
-        } 
-        else {
-            return this.getSecretFromGCP(this.environment, secretName);
+        try {
+            
+            if (this.provider == "aws") return this.getSecretFromAWS(this.environment, secretName);
+            else return this.getSecretFromGCP(this.environment, secretName);
+
+        } catch (error) {
+            
+            this.logger.compute("", `Error retrieving secret ${secretName} from ${this.provider} Secret Manager: ${error}`, "error");
+
+            throw error;
         }
     }
 

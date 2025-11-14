@@ -18,9 +18,11 @@ import { PubSubImplementationsFactory } from './evt/PubSubImplementationsFactory
 import { APubSubImplementation } from './evt/PubSubImplementation';
 import { GCPPubSubImpl } from './evt/impl/gcp/GCPPubSubImpl';
 import { SNSImpl } from './evt/impl/aws/SNSImpl';
+import { TotoRegistryAPI } from './integration/TotoRegistryAPI';
+import { RegistryCache } from './integration/RegistryCache';
 
 export { newTotoServiceToken } from './auth/TotoToken';
-export { APubSubImplementation, APubSubRequestValidator } from './evt/PubSubImplementation'
+export { APubSubImplementation, APubSubRequestValidator, APubSubRequestFilter } from './evt/PubSubImplementation'
 export { PubSubImplementationsFactory } from './evt/PubSubImplementationsFactory'
 export { TotoMessage } from './evt/TotoMessage'
 export { ITotoPubSubEventHandler } from './evt/TotoPubSubEventHandler'
@@ -40,6 +42,8 @@ export { GCPPubSubRequestValidator } from './evt/impl/gcp/GCPPubSubRequestValida
 export { SNSRequestValidator } from './evt/impl/aws/SNSRequestValidator';
 export { googleAuthCheck } from './validation/GoogleAuthCheck'
 export { ConfigMock, LazyValidator, ValidationError, Validator } from './validation/Validator'
+export { RegistryCache } from './integration/RegistryCache'
+export { TotoRegistryAPI } from './integration/TotoRegistryAPI'
 
 export class TotoControllerOptions {
     debugMode?: boolean = false
@@ -90,7 +94,7 @@ export class TotoAPIController {
         this.config.logger = this.logger;
 
         // Log some configuration properties
-        if (options.debugMode) this.logger.compute("", `[TotoAPIController Debug] - Config Properties: ${JSON.stringify(config.getProps())}`)
+        if (options.debugMode) this.logger.compute("INIT", `[TotoAPIController Debug] - Config Properties: ${JSON.stringify(config.getProps())}`)
 
         // Initialize the basic Express functionalities
         this.app.use(function (req: any, res: any, next: any) {
@@ -129,6 +133,14 @@ export class TotoAPIController {
         await this.config.load();
 
         this.validator = new Validator(this.config, this.logger, this.options.debugMode);
+
+        // Register this API with Toto API Registry
+        const registrationResponse = await new TotoRegistryAPI(this.config).registerAPI({ apiName: this.apiName, basePath: this.options.basePath?.replace("/", ""), hyperscaler: this.config.hyperscaler });
+
+        this.logger.compute("INIT", `API ${this.apiName} successfully registered with Toto API Registry: ${JSON.stringify(registrationResponse)}`, 'info');
+
+        // Download all Toto API Endpoints and cache them 
+        RegistryCache.getInstance(this.config).refresh();
 
     }
 
@@ -272,7 +284,7 @@ export class TotoAPIController {
         });
 
         // Log the added path
-        console.log('[' + this.apiName + '] - Successfully added method ' + 'POST' + ' ' + correctedPath);
+        this.logger.compute("INIT", '[' + this.apiName + '] - Successfully added method ' + 'POST' + ' ' + correctedPath);
     }
 
     /**
@@ -413,7 +425,7 @@ export class TotoAPIController {
         else this.app.get(correctedPath, handleRequest);
 
         // Log the added path
-        console.log('[' + this.apiName + '] - Successfully added method ' + method + ' ' + correctedPath);
+        this.logger.compute("INIT", '[' + this.apiName + '] - Successfully added method ' + method + ' ' + correctedPath);
     }
 
     /**
@@ -428,7 +440,7 @@ export class TotoAPIController {
         }
 
         this.app.listen(this.options.port, () => {
-            this.logger.compute("", `[${this.apiName}] - Microservice listening on port ${this.options.port}`, 'info');
+            this.logger.compute("INIT", `[${this.apiName}] - Microservice listening on port ${this.options.port}`, 'info');
         });
 
     }
