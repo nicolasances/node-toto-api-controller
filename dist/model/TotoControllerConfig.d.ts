@@ -8,7 +8,8 @@ export declare abstract class TotoControllerConfig {
     protected mongoHost: string | undefined;
     protected jwtSigningKey: string | undefined;
     protected expectedAudience: string | undefined;
-    constructor(configuration: ConfigurationData);
+    options: TotoControllerConfigOptions | undefined;
+    constructor(configuration: ConfigurationData, options?: TotoControllerConfigOptions);
     /**
      * Loads the configurations and returns a Promise when done
      */
@@ -35,4 +36,8 @@ export declare abstract class TotoControllerConfig {
 }
 export interface ConfigurationData {
     apiName: string;
+}
+export declare class TotoControllerConfigOptions {
+    defaultHyperscaler: "aws" | "gcp";
+    defaultSecretsManagerLocation: "aws" | "gcp";
 }
