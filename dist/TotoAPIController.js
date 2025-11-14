@@ -145,8 +145,11 @@ class TotoAPIController {
             yield this.config.load();
             this.validator = new Validator_1.Validator(this.config, this.logger, this.options.debugMode);
             // Register this API with Toto API Registry
-            const registrationResponse = yield new TotoRegistryAPI_1.TotoRegistryAPI(this.config).registerAPI({ apiName: this.apiName, basePath: (_a = this.options.basePath) === null || _a === void 0 ? void 0 : _a.replace("/", ""), hyperscaler: this.config.hyperscaler });
-            this.logger.compute("INIT", `API ${this.apiName} successfully registered with Toto API Registry: ${JSON.stringify(registrationResponse)}`, 'info');
+            // But do not register if the hyperscaler is "local" (we're running locally)
+            if (this.config.hyperscaler != 'local') {
+                const registrationResponse = yield new TotoRegistryAPI_1.TotoRegistryAPI(this.config).registerAPI({ apiName: this.apiName, basePath: (_a = this.options.basePath) === null || _a === void 0 ? void 0 : _a.replace("/", ""), hyperscaler: this.config.hyperscaler });
+                this.logger.compute("INIT", `API ${this.apiName} successfully registered with Toto API Registry: ${JSON.stringify(registrationResponse)}`, 'info');
+            }
             // Download all Toto API Endpoints and cache them 
             RegistryCache_1.RegistryCache.getInstance(this.config).refresh();
         });
