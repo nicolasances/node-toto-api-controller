@@ -29,7 +29,7 @@ export { ITotoPubSubEventHandler } from './evt/TotoPubSubEventHandler'
 export { Logger } from './logger/TotoLogger'
 export { AUTH_PROVIDERS } from './model/AuthProviders'
 export { ExecutionContext } from './model/ExecutionContext'
-export { TotoControllerConfig, ConfigurationData } from './model/TotoControllerConfig'
+export { TotoControllerConfig, ConfigurationData, TotoControllerConfigOptions } from './model/TotoControllerConfig'
 export { FakeRequest, TotoDelegate } from './model/TotoDelegate'
 export { TotoPathOptions } from './model/TotoPathOptions'
 export { TotoRuntimeError } from './model/TotoRuntimeError'
@@ -44,6 +44,7 @@ export { googleAuthCheck } from './validation/GoogleAuthCheck'
 export { ConfigMock, LazyValidator, ValidationError, Validator } from './validation/Validator'
 export { RegistryCache } from './integration/RegistryCache'
 export { TotoRegistryAPI } from './integration/TotoRegistryAPI'
+export { TotoAPI, TotoAPIRequest, TotoAPIResponseConstructor } from './integration/TotoAPI'
 
 export class TotoControllerOptions {
     debugMode?: boolean = false

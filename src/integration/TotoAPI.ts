@@ -88,7 +88,7 @@ export class TotoAPIRequest {
 
 }
 
-interface TotoAPIResponseConstructor<T> {
+export interface TotoAPIResponseConstructor<T> {
     fromParsedHTTPResponseBody(body: any): T;
 }
 
