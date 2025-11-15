@@ -56,8 +56,9 @@ class TotoAPI {
                 logger === null || logger === void 0 ? void 0 : logger.compute(request.cid, `TotoAPI Error: Unable to find endpoint for API [${this.apiName}]`, "error");
                 throw new TotoAPIController_1.TotoRuntimeError(500, `TotoAPI Error: Unable to find endpoint for API [${this.apiName}]`);
             }
+            logger.compute(request.cid, `Calling ${method} ${endpoint.endpointURL}${request.path}`);
             return new Promise((success, failure) => {
-                (0, request_1.default)({
+                const req = {
                     uri: `${endpoint.endpointURL}${request.path}`,
                     method: method,
                     headers: {
@@ -65,8 +66,11 @@ class TotoAPI {
                         'Authorization': `Bearer ${this.authToken}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(request.body)
-                }, (err, resp, body) => {
+                };
+                if (request.body) {
+                    req.body = JSON.stringify(request.body);
+                }
+                (0, request_1.default)(req, (err, resp, body) => {
                     handleResponse(err, resp, body, ResponseClass).then(success).catch(failure);
                 });
             });
