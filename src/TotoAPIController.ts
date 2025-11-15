@@ -29,7 +29,7 @@ export { ITotoPubSubEventHandler } from './evt/TotoPubSubEventHandler'
 export { Logger } from './logger/TotoLogger'
 export { AUTH_PROVIDERS } from './model/AuthProviders'
 export { ExecutionContext } from './model/ExecutionContext'
-export { TotoControllerConfig, ConfigurationData } from './model/TotoControllerConfig'
+export { TotoControllerConfig, ConfigurationData, TotoControllerConfigOptions } from './model/TotoControllerConfig'
 export { FakeRequest, TotoDelegate } from './model/TotoDelegate'
 export { TotoPathOptions } from './model/TotoPathOptions'
 export { TotoRuntimeError } from './model/TotoRuntimeError'
@@ -44,6 +44,7 @@ export { googleAuthCheck } from './validation/GoogleAuthCheck'
 export { ConfigMock, LazyValidator, ValidationError, Validator } from './validation/Validator'
 export { RegistryCache } from './integration/RegistryCache'
 export { TotoRegistryAPI } from './integration/TotoRegistryAPI'
+export { TotoAPI, TotoAPIRequest, TotoAPIResponseConstructor } from './integration/TotoAPI'
 
 export class TotoControllerOptions {
     debugMode?: boolean = false
@@ -135,9 +136,13 @@ export class TotoAPIController {
         this.validator = new Validator(this.config, this.logger, this.options.debugMode);
 
         // Register this API with Toto API Registry
-        const registrationResponse = await new TotoRegistryAPI(this.config).registerAPI({ apiName: this.apiName, basePath: this.options.basePath?.replace("/", ""), hyperscaler: this.config.hyperscaler });
+        // But do not register if the hyperscaler is "local" (we're running locally)
+        if (this.config.hyperscaler != 'local') {
 
-        this.logger.compute("INIT", `API ${this.apiName} successfully registered with Toto API Registry: ${JSON.stringify(registrationResponse)}`, 'info');
+            const registrationResponse = await new TotoRegistryAPI(this.config).registerAPI({ apiName: this.apiName, basePath: this.options.basePath?.replace("/", ""), hyperscaler: this.config.hyperscaler });
+
+            this.logger.compute("INIT", `API ${this.apiName} successfully registered with Toto API Registry: ${JSON.stringify(registrationResponse)}`, 'info');
+        }
 
         // Download all Toto API Endpoints and cache them 
         RegistryCache.getInstance(this.config).refresh();

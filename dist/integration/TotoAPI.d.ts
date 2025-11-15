@@ -22,7 +22,6 @@ export declare class TotoAPIRequest {
     body?: any;
     constructor(path: string, body?: any, cid?: string);
 }
-interface TotoAPIResponseConstructor<T> {
+export interface TotoAPIResponseConstructor<T> {
     fromParsedHTTPResponseBody(body: any): T;
 }
-export {};

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TotoAPIController = exports.TotoControllerOptions = exports.TotoRegistryAPI = exports.RegistryCache = exports.Validator = exports.ValidationError = exports.LazyValidator = exports.ConfigMock = exports.googleAuthCheck = exports.SNSRequestValidator = exports.GCPPubSubRequestValidator = exports.basicallyHandleError = exports.SecretsManager = exports.correlationId = exports.TotoRuntimeError = exports.TotoControllerConfig = exports.ExecutionContext = exports.AUTH_PROVIDERS = exports.Logger = exports.PubSubImplementationsFactory = exports.APubSubRequestValidator = exports.APubSubImplementation = exports.newTotoServiceToken = void 0;
+exports.TotoAPIController = exports.TotoControllerOptions = exports.TotoAPIRequest = exports.TotoAPI = exports.TotoRegistryAPI = exports.RegistryCache = exports.Validator = exports.ValidationError = exports.LazyValidator = exports.ConfigMock = exports.googleAuthCheck = exports.SNSRequestValidator = exports.GCPPubSubRequestValidator = exports.basicallyHandleError = exports.SecretsManager = exports.correlationId = exports.TotoRuntimeError = exports.TotoControllerConfigOptions = exports.TotoControllerConfig = exports.ExecutionContext = exports.AUTH_PROVIDERS = exports.Logger = exports.PubSubImplementationsFactory = exports.APubSubRequestValidator = exports.APubSubImplementation = exports.newTotoServiceToken = void 0;
 const body_parser_1 = __importDefault(require("body-parser"));
 const connect_busboy_1 = __importDefault(require("connect-busboy"));
 const fs_extra_1 = __importDefault(require("fs-extra"));
@@ -44,6 +44,7 @@ var ExecutionContext_2 = require("./model/ExecutionContext");
 Object.defineProperty(exports, "ExecutionContext", { enumerable: true, get: function () { return ExecutionContext_2.ExecutionContext; } });
 var TotoControllerConfig_1 = require("./model/TotoControllerConfig");
 Object.defineProperty(exports, "TotoControllerConfig", { enumerable: true, get: function () { return TotoControllerConfig_1.TotoControllerConfig; } });
+Object.defineProperty(exports, "TotoControllerConfigOptions", { enumerable: true, get: function () { return TotoControllerConfig_1.TotoControllerConfigOptions; } });
 var TotoRuntimeError_2 = require("./model/TotoRuntimeError");
 Object.defineProperty(exports, "TotoRuntimeError", { enumerable: true, get: function () { return TotoRuntimeError_2.TotoRuntimeError; } });
 var CorrelationId_1 = require("./util/CorrelationId");
@@ -67,6 +68,9 @@ var RegistryCache_2 = require("./integration/RegistryCache");
 Object.defineProperty(exports, "RegistryCache", { enumerable: true, get: function () { return RegistryCache_2.RegistryCache; } });
 var TotoRegistryAPI_2 = require("./integration/TotoRegistryAPI");
 Object.defineProperty(exports, "TotoRegistryAPI", { enumerable: true, get: function () { return TotoRegistryAPI_2.TotoRegistryAPI; } });
+var TotoAPI_1 = require("./integration/TotoAPI");
+Object.defineProperty(exports, "TotoAPI", { enumerable: true, get: function () { return TotoAPI_1.TotoAPI; } });
+Object.defineProperty(exports, "TotoAPIRequest", { enumerable: true, get: function () { return TotoAPI_1.TotoAPIRequest; } });
 class TotoControllerOptions {
     constructor() {
         this.debugMode = false;
@@ -141,8 +145,11 @@ class TotoAPIController {
             yield this.config.load();
             this.validator = new Validator_1.Validator(this.config, this.logger, this.options.debugMode);
             // Register this API with Toto API Registry
-            const registrationResponse = yield new TotoRegistryAPI_1.TotoRegistryAPI(this.config).registerAPI({ apiName: this.apiName, basePath: (_a = this.options.basePath) === null || _a === void 0 ? void 0 : _a.replace("/", ""), hyperscaler: this.config.hyperscaler });
-            this.logger.compute("INIT", `API ${this.apiName} successfully registered with Toto API Registry: ${JSON.stringify(registrationResponse)}`, 'info');
+            // But do not register if the hyperscaler is "local" (we're running locally)
+            if (this.config.hyperscaler != 'local') {
+                const registrationResponse = yield new TotoRegistryAPI_1.TotoRegistryAPI(this.config).registerAPI({ apiName: this.apiName, basePath: (_a = this.options.basePath) === null || _a === void 0 ? void 0 : _a.replace("/", ""), hyperscaler: this.config.hyperscaler });
+                this.logger.compute("INIT", `API ${this.apiName} successfully registered with Toto API Registry: ${JSON.stringify(registrationResponse)}`, 'info');
+            }
             // Download all Toto API Endpoints and cache them 
             RegistryCache_1.RegistryCache.getInstance(this.config).refresh();
         });
