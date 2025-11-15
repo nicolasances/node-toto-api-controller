@@ -39,7 +39,7 @@ export class TotoAPI {
      */
     private async call<T>(method: string, request: TotoAPIRequest, ResponseClass: TotoAPIResponseConstructor<T>): Promise<T> {
 
-        const logger = this.config.logger;
+        const logger = this.config.logger!;
         const endpoint = await RegistryCache.getInstance().getEndpoint(this.apiName);
 
         if (!endpoint || !endpoint.endpointURL) {
@@ -47,9 +47,11 @@ export class TotoAPI {
             throw new TotoRuntimeError(500, `TotoAPI Error: Unable to find endpoint for API [${this.apiName}]`);
         }
 
+        logger.compute(request.cid, `Calling ${method} ${endpoint.endpointURL}${request.path}`);
+
         return new Promise<T>((success, failure) => {
 
-            http({
+            const req = {
                 uri: `${endpoint.endpointURL}${request.path}`,
                 method: method,
                 headers: {
@@ -57,12 +59,14 @@ export class TotoAPI {
                     'Authorization': `Bearer ${this.authToken}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(request.body)
+            } as any
 
-            }, (err, resp, body) => {
+            if (request.body) {
+                req.body = JSON.stringify(request.body);
+            }
 
+            http(req, (err: any, resp: any, body: any) => {
                 handleResponse<T>(err, resp, body, ResponseClass).then(success).catch(failure)
-
             });
         })
     }
