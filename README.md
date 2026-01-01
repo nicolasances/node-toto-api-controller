@@ -1,3 +1,11 @@
+# ⚠️ DEPRECATED
+
+**This project has been deprecated and is no longer maintained.**
+
+Please visit the [Toto Microservice SDK Repository](https://github.com/nicolasances/toto-microservice-sdk) for the latest version of the Toto Microservice SDK. 
+
+---
+
 # Toto API Controller
 The Toto API Controller is a façade to expressJS to make it easier building an API.
 
